@@ -1,0 +1,32 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "sonner";
+import { AuthProvider } from "./contexts/AuthContext";
+import Index from "./pages/Index";
+import Eventos from "./pages/Eventos";
+import Login from "./pages/Login";
+import NotFound from "./pages/NotFound";
+import PanelAdministrador from "./pages/PanelAdministrador";
+import DetalleEvento from "./pages/DetalleEvento";
+
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/eventos" element={<Eventos />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<PanelAdministrador />} />
+          <Route path="/event/:id" element={<DetalleEvento />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+      <Toaster position="top-center" richColors />
+    </AuthProvider>
+  </QueryClientProvider>
+);
+
+export default App;
