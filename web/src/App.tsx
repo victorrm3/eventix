@@ -10,6 +10,7 @@ import PanelAdministrador from "./pages/PanelAdministrador";
 import DetalleEvento from "./pages/DetalleEvento";
 import CrearEvento from "./pages/CrearEvento";
 import SaberMas from "./pages/SaberMas";
+import MiPerfil from "./pages/MiPerfil";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/admin" element={<PanelAdministrador />} />
           <Route path="/crear-evento" element={<CrearEvento />} />
           <Route path="/saber-mas" element={<SaberMas />} />
+          <Route path="/mi-perfil" element={<MiPerfil />} />
           <Route path="/event/:id" element={<DetalleEvento />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

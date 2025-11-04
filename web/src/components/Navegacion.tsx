@@ -28,8 +28,8 @@ const Navegacion = () => {
               Sobre Nosotros
             </Link>
             {user && (
-              <Link to="/my-events" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Mis Eventos
+              <Link to="/mi-perfil" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Mi Perfil
               </Link>
             )}
             {user?.role === "user" && (
@@ -54,9 +54,24 @@ const Navegacion = () => {
                     <span>Crear Evento</span>
                   </button>
                 )}
-                <div className="hidden md:flex items-center space-x-2 text-sm">
-                  <span className="text-gray-600">Bienvenido,</span>
-                  <span className="font-medium text-gray-900">{user.name}</span>
+                <div className="hidden md:flex items-center space-x-3">
+                  {user.profile_image ? (
+                    <img 
+                      src={user.profile_image} 
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center border-2 border-gray-200">
+                      <span className="text-white text-sm font-medium">
+                        {user.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500">Bienvenido,</span>
+                    <span className="text-sm font-medium text-gray-900">{user.name}</span>
+                  </div>
                 </div>
                 <button className="p-2 hover:bg-gray-100 rounded-md transition-colors" onClick={logout} title="Cerrar Sesión">
                   <LogOut className="w-4 h-4" />
