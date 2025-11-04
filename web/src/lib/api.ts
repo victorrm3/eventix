@@ -1,11 +1,10 @@
-// TODO: Reemplazar con la URL de tu backend Laravel
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'http://localhost/api';
 
 export const getAuthToken = () => {
   return localStorage.getItem('token');
 };
 
-export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+export const peticionApi = async (endpoint: string, options: RequestInit = {}) => {
   const token = getAuthToken();
   
   const headers: HeadersInit = {

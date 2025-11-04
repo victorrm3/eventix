@@ -24,9 +24,17 @@ const Navegacion = () => {
             <Link to="/eventos" className="text-gray-600 hover:text-gray-900 transition-colors">
               Eventos
             </Link>
+            <Link to="/saber-mas" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Sobre Nosotros
+            </Link>
             {user && (
               <Link to="/my-events" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Mis Eventos
+              </Link>
+            )}
+            {user?.role === "user" && (
+              <Link to="/crear-evento" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Crear Evento
               </Link>
             )}
             {user?.role === "admin" && (

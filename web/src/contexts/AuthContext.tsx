@@ -20,7 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('Error de verificación');
   }
   return context;
 };
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   // TODO: Reemplazar con la URL de tu backend Laravel
-  const API_URL = 'http://localhost:8000/api';
+  const API_URL = 'http://localhost/api';
 
   useEffect(() => {
     // Verificar si hay un usuario guardado en localStorage

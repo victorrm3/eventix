@@ -2,6 +2,7 @@ import Navegacion from "@/components/Navegacion";
 import Principal from "@/components/Principal";
 import EventGrid from "@/components/EventGrid";
 import { getEventosDestacados } from "@/data/eventosFalsos";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const eventosDestacados = getEventosDestacados();
@@ -23,12 +24,16 @@ const Index = () => {
             y conectar con su audiencia.
           </p>
           <div className="flex items-center justify-center space-x-4">
-            <button className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg">
-              Empezar a Crear
-            </button>
-            <button className="border border-white/30 text-white px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors">
-              Saber Más
-            </button>
+            <Link to="/crear-evento">
+              <button className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg">
+                Empezar a Crear
+              </button>
+            </Link>
+            <Link to="/saber-mas">
+              <button className="border border-white/30 text-white px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors">
+                Saber Más
+              </button>
+            </Link>
           </div>
         </div>
       </section>

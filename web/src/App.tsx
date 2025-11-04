@@ -8,6 +8,8 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import PanelAdministrador from "./pages/PanelAdministrador";
 import DetalleEvento from "./pages/DetalleEvento";
+import CrearEvento from "./pages/CrearEvento";
+import SaberMas from "./pages/SaberMas";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +22,8 @@ const App = () => (
           <Route path="/eventos" element={<Eventos />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<PanelAdministrador />} />
+          <Route path="/crear-evento" element={<CrearEvento />} />
+          <Route path="/saber-mas" element={<SaberMas />} />
           <Route path="/event/:id" element={<DetalleEvento />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

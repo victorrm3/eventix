@@ -26,7 +26,7 @@ const Login = () => {
     e.preventDefault();
     try {
       await login(infoLogin.correo, infoLogin.contraseña);
-      toast.success("Inicio de sesión exitoso");
+      toast.success("Se ha iniciado sesión");
       navigate("/");
     } catch (error: any) {
       toast.error(error.message || "Error al iniciar sesión");
