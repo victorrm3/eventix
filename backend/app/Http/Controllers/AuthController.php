@@ -34,6 +34,7 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'profile_image' => $user->profile_image ? \Illuminate\Support\Facades\Storage::disk('public')->url('profile_images/' . $user->profile_image) : null,
             ],
         ], 201);
     }
@@ -62,6 +63,7 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'profile_image' => $user->profile_image ? \Illuminate\Support\Facades\Storage::disk('public')->url('profile_images/' . $user->profile_image) : null,
             ],
         ]);
     }

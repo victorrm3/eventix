@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'profile_image',
     ];
 
     /**
@@ -47,5 +48,22 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Amigos del usuario (relación bidireccional)
+     */
+    public function friends()
+    {
+        return $this->belongsToMany(User::class, 'friends', 'user_id', 'friend_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Tickets del usuario
+     */
+    public function tickets()
+    {
+        return $this->hasMany(\App\Models\Ticket::class);
     }
 }
