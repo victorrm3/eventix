@@ -11,7 +11,7 @@ Route::get('/health', function () {
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Responder los preflight CORS de cualquier ruta API
+// Responder CORS de cualquier ruta API
 Route::options('/{any}', function () {
     return response()->noContent();
 })->where('any', '.*');

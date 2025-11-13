@@ -1,5 +1,7 @@
 import { Users, Calendar, MapPin, Star } from "lucide-react";
 
+//Clase de Estadisticas falsas (reemplazar por datos de backend en el futuro)
+
 const Estadisticas = () => {
   const estadisticas = [
     {

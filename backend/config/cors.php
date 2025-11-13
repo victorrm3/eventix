@@ -3,7 +3,7 @@
 return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
-    // Permitir tu frontend en 8080 (y ajustar si usas otros puertos)
+    // Permitir frontend en 8080
     'allowed_origins' => [
         'http://localhost:8080',
         'http://127.0.0.1:8080',

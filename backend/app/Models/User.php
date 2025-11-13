@@ -15,7 +15,7 @@ class User extends Authenticatable
 
 
     /**
-     * The attributes that are mass assignable.
+     * Atributos rellenables
      *
      * @var list<string>
      */
@@ -28,7 +28,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Atributos ocultos
      *
      * @var list<string>
      */
@@ -38,7 +38,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Atributos procesados
      *
      * @return array<string, string>
      */

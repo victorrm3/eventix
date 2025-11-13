@@ -8,21 +8,21 @@ use Illuminate\Console\Command;
 class CreateAdminUser extends Command
 {
     /**
-     * The name and signature of the console command.
+     * Nombre del comando
      *
      * @var string
      */
     protected $signature = 'user:create-admin';
 
     /**
-     * The console command description.
+     * Descripción del comando
      *
      * @var string
      */
     protected $description = 'Crea un usuario administrador con email admin@eventix.com';
 
     /**
-     * Execute the console command.
+     * Ejecución del comando
      */
     public function handle()
     {

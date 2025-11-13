@@ -121,7 +121,7 @@ class UserController extends Controller
     }
 
     /**
-     * Obtener amigos del usuario
+     * Obtener amigos del usuario (no implementado aún)
      * GET /api/user/friends
      */
     public function getFriends()
@@ -136,7 +136,7 @@ class UserController extends Controller
     }
 
     /**
-     * Agregar amigo
+     * Agregar amigo (no implementado aún)
      * POST /api/user/friends
      */
     public function addFriend(Request $request)

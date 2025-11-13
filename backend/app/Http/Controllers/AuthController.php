@@ -19,12 +19,12 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            // El modelo User tiene cast 'password' => 'hashed', así que basta el plano
+            // El modelo User tiene 'password' => 'hashed', así que basta el plano
             'password' => $validated['password'],
             'role' => 'user',
         ]);
 
-        // Requiere Laravel Sanctum instalado
+        // Laravel Sanctum instalado para los tokens y APIs
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

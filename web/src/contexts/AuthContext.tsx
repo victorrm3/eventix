@@ -35,7 +35,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // TODO: Reemplazar con la URL de tu backend Laravel
   const API_URL = 'http://localhost/api';
 
   useEffect(() => {
