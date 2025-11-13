@@ -1,8 +1,12 @@
 import Navigation from "@/components/Navegacion";
-import { Plus, Calendar, Users, DollarSign, BarChart3 } from "lucide-react";
+import { Plus, Calendar, Users, DollarSign, BarChart3, TrendingUp } from "lucide-react";
 import { eventosFalsos } from "@/data/eventosFalsos";
+import { useNavigate } from "react-router-dom";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 
 const PanelAdministrador = () => {
+  const navigate = useNavigate();
+  
   const estadisticas = [
     {
       titulo: "Total de Eventos",
@@ -30,6 +34,35 @@ const PanelAdministrador = () => {
     },
   ];
 
+  // Datos para gráficos
+  const datosVentasPorMes = [
+    { mes: "Ene", ventas: 4500 },
+    { mes: "Feb", ventas: 5200 },
+    { mes: "Mar", ventas: 4800 },
+    { mes: "Abr", ventas: 6100 },
+    { mes: "May", ventas: 7300 },
+    { mes: "Jun", ventas: 8500 },
+  ];
+
+  const datosDistribucionPrecios = [
+    { rango: "Gratis", value: eventosFalsos.filter(e => e.precio === 0).length },
+    { rango: "€1-50", value: eventosFalsos.filter(e => e.precio > 0 && e.precio <= 50).length },
+    { rango: "€51-100", value: eventosFalsos.filter(e => e.precio > 50 && e.precio <= 100).length },
+    { rango: "€100+", value: eventosFalsos.filter(e => e.precio > 100).length },
+  ].filter(item => item.value > 0);
+
+  const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--chart-1))', 'hsl(var(--chart-2))'];
+
+  const datosAsistenciaSemanal = [
+    { dia: "Lun", asistentes: 245 },
+    { dia: "Mar", asistentes: 312 },
+    { dia: "Mie", asistentes: 289 },
+    { dia: "Jue", asistentes: 401 },
+    { dia: "Vie", asistentes: 520 },
+    { dia: "Sab", asistentes: 680 },
+    { dia: "Dom", asistentes: 590 },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -41,7 +74,10 @@ const PanelAdministrador = () => {
             <h1 className="text-3xl font-bold mb-2">Panel de Administración</h1>
             <p className="text-muted-foreground">Gestiona tus eventos y rastrea el rendimiento</p>
           </div>
-          <button className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md font-medium flex items-center space-x-2 transition-colors">
+          <button 
+            onClick={() => navigate('/admin/crear-evento')}
+            className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 px-4 py-2 rounded-md font-medium flex items-center space-x-2 transition-all shadow-lg"
+          >
             <Plus className="w-4 h-4" />
             <span>Crear Nuevo Evento</span>
           </button>
@@ -52,15 +88,18 @@ const PanelAdministrador = () => {
           {estadisticas.map((stat, index) => {
             const Icon = stat.icono;
             return (
-              <div key={index} className="p-6 bg-white rounded-lg border shadow-sm">
+              <div key={index} className="p-6 bg-card rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">{stat.titulo}</p>
-                    <p className="text-2xl font-bold">{stat.valor}</p>
-                    <p className="text-sm text-green-600 font-medium">{stat.trend}</p>
+                    <p className="text-sm text-muted-foreground mb-1">{stat.titulo}</p>
+                    <p className="text-2xl font-bold text-foreground">{stat.valor}</p>
+                    <p className="text-sm text-green-600 font-medium flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      {stat.trend}
+                    </p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-                    <Icon className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-r from-primary to-primary/60 rounded-lg flex items-center justify-center">
+                    <Icon className="w-6 h-6 text-primary-foreground" />
                   </div>
                 </div>
               </div>
@@ -68,54 +107,91 @@ const PanelAdministrador = () => {
           })}
         </div>
 
-        {/* Formulario de crear evento rápido */}
-        <div className="p-6 bg-white rounded-lg border shadow-sm mb-8">
-          <h2 className="text-xl font-semibold mb-6">Crear Evento Rápido</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Título del Evento</label>
-                <input id="title" placeholder="Introduce el título del evento" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
-              </div>
-              <div>
-                <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-                <input id="date" type="date" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
-              </div>
-              <div>
-                <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">Hora</label>
-                <input id="time" type="time" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
-              </div>
-              <div>
-                <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Precio (€)</label>
-                <input id="price" type="number" placeholder="0" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">Ubicación</label>
-                <input id="location" placeholder="Introduce la ubicación del lugar" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
-              </div>
-              <div>
-                <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-1">Capacidad Máxima</label>
-                <input id="capacity" type="number" placeholder="100" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
-              </div>
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                <textarea id="description" placeholder="Descripción del evento" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-h-[100px] resize-none" />
-              </div>
-              <button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 px-4 py-2 rounded-md font-medium transition-all">
-                Crear Evento
-              </button>
-            </div>
+        {/* Métricas visuales */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Ventas por mes */}
+          <div className="p-6 bg-card rounded-lg border border-border shadow-sm">
+            <h2 className="text-xl font-semibold mb-6 text-foreground">Ingresos Mensuales</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={datosVentasPorMes}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" />
+                <YAxis stroke="hsl(var(--muted-foreground))" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Bar dataKey="ventas" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Distribución por precios */}
+          <div className="p-6 bg-card rounded-lg border border-border shadow-sm">
+            <h2 className="text-xl font-semibold mb-6 text-foreground">Distribución por Rango de Precio</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={datosDistribucionPrecios}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ rango, percent }) => `${rango} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="hsl(var(--primary))"
+                  dataKey="value"
+                >
+                  {datosDistribucionPrecios.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Asistencia semanal */}
+          <div className="p-6 bg-card rounded-lg border border-border shadow-sm lg:col-span-2">
+            <h2 className="text-xl font-semibold mb-6 text-foreground">Tendencia de Asistencia Semanal</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={datosAsistenciaSemanal}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="dia" stroke="hsl(var(--muted-foreground))" />
+                <YAxis stroke="hsl(var(--muted-foreground))" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="asistentes" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth={3}
+                  dot={{ fill: 'hsl(var(--primary))', r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
         {/* Eventos recientes */}
-        <div className="p-6 bg-white rounded-lg border shadow-sm">
-          <h2 className="text-xl font-semibold mb-6">Eventos Recientes</h2>
+        <div className="p-6 bg-card rounded-lg border border-border shadow-sm">
+          <h2 className="text-xl font-semibold mb-6 text-foreground">Eventos Recientes</h2>
           <div className="space-y-4">
             {eventosFalsos.slice(0, 5).map((evento) => (
-              <div key={evento.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div key={evento.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
                 <div className="flex items-center space-x-4">
                   <img 
                     src={evento.imagen} 
@@ -123,13 +199,13 @@ const PanelAdministrador = () => {
                     className="w-12 h-12 object-cover rounded-lg"
                   />
                   <div>
-                    <h3 className="font-semibold">{evento.titulo}</h3>
-                    <p className="text-sm text-gray-600">{evento.fecha} • {evento.lugar}</p>
+                    <h3 className="font-semibold text-foreground">{evento.titulo}</h3>
+                    <p className="text-sm text-muted-foreground">{evento.fecha} • {evento.lugar}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">{evento.personas} / {evento.maxPersonas}</p>
-                  <p className="text-sm text-gray-600">€{evento.precio * evento.personas}</p>
+                  <p className="font-semibold text-foreground">{evento.personas} / {evento.maxPersonas}</p>
+                  <p className="text-sm text-muted-foreground">€{evento.precio * evento.personas}</p>
                 </div>
               </div>
             ))}

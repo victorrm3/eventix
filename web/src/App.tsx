@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import PanelAdministrador from "./pages/PanelAdministrador";
 import DetalleEvento from "./pages/DetalleEvento";
 import CrearEvento from "./pages/CrearEvento";
+import CrearEventoAdmin from "./pages/CrearEventoAdmin";
 import SaberMas from "./pages/SaberMas";
 import MiPerfil from "./pages/MiPerfil";
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/eventos" element={<Eventos />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<PanelAdministrador />} />
+          <Route path="/admin/crear-evento" element={<CrearEventoAdmin />} />
           <Route path="/crear-evento" element={<CrearEvento />} />
           <Route path="/saber-mas" element={<SaberMas />} />
           <Route path="/mi-perfil" element={<MiPerfil />} />
