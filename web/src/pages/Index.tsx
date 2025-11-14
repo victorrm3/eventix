@@ -1,17 +1,61 @@
 import Navegacion from "@/components/Navegacion";
 import Principal from "@/components/Principal";
 import EventGrid from "@/components/EventGrid";
-import { getEventosDestacados } from "@/data/eventosFalsos";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { peticionApi } from "@/lib/api";
+import { Evento } from "@/data/eventosFalsos";
 
 const Index = () => {
-  const eventosDestacados = getEventosDestacados();
+  const [eventosDestacados, setEventosDestacados] = useState<Evento[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    const cargarEventosDestacados = async () => {
+      try {
+        setCargando(true);
+        const data = await peticionApi('/events?featured=true');
+        
+        const eventosFormateados = data.events.map((evento: any) => ({
+          id: evento.id.toString(),
+          titulo: evento.title,
+          descripcion: evento.description,
+          fecha: evento.date,
+          hora: evento.time,
+          lugar: evento.location,
+          precio: evento.price,
+          imagen: evento.image_url || '/placeholder.jpg',
+          personas: evento.attendees,
+          maxPersonas: evento.capacity,
+          lat: evento.lat,
+          lng: evento.lng,
+          categoria: evento.category,
+        }));
+        
+        setEventosDestacados(eventosFormateados);
+      } catch (error) {
+        console.error('Error al cargar eventos destacados:', error);
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    cargarEventosDestacados();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
       <Navegacion />
       <Principal />
-      <EventGrid eventos={eventosDestacados} titulo="Eventos Destacados" />
+      {cargando ? (
+        <section className="py-16">
+          <div className="container mx-auto px-4 text-center">
+            <p className="text-lg text-muted-foreground">Cargando eventos destacados...</p>
+          </div>
+        </section>
+      ) : (
+        <EventGrid eventos={eventosDestacados} titulo="Eventos Destacados" />
+      )}
       
       {/* Seccion inferior */}
       <section className="py-16 bg-gradient-to-r from-purple-600 to-blue-600">
@@ -42,4 +86,5 @@ const Index = () => {
 };
 
 export default Index;
+
 

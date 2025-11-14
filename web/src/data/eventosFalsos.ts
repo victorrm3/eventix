@@ -13,6 +13,15 @@ export interface Evento {
   imagen: string;
   personas: number;
   maxPersonas: number;
+  lat?: string;
+  lng?: string;
+  categoria?: string;
+  creator?: {
+    id: number;
+    name: string;
+    email: string;
+    profile_image?: string;
+  };
 }
 
 export const eventosFalsos: Evento[] = [

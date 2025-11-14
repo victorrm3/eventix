@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\EventController;
 
 Route::get('/health', function () {
     return response()->json(['status' => 'ok']);
@@ -10,6 +11,10 @@ Route::get('/health', function () {
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// Eventos (públicos, solo eventos shareable)
+Route::get('/events', [EventController::class, 'index']);
+Route::get('/events/{id}', [EventController::class, 'show']);
 
 // Responder CORS de cualquier ruta API
 Route::options('/{any}', function () {
@@ -30,4 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Entradas
     Route::get('/user/tickets', [UserController::class, 'getTickets']);
+    
+    // Eventos (solo admins)
+    Route::post('/events', [EventController::class, 'store']);
 });

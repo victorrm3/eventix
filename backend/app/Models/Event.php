@@ -21,8 +21,22 @@ class Event extends Model
         'lng',
         'capacity',
         'category',
+        'price',
+        'shareable',
+        'image_url',
         'created_by',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'date' => 'date',
+            'price' => 'decimal:2',
+            'shareable' => 'boolean',
+            'lat' => 'decimal:7',
+            'lng' => 'decimal:7',
+        ];
+    }
 
     /**
      * Usuario creador del evento
