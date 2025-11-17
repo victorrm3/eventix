@@ -1,6 +1,7 @@
 import Navegacion from "@/components/Navegacion";
 import Principal from "@/components/Principal";
 import EventGrid from "@/components/EventGrid";
+import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { peticionApi } from "@/lib/api";
@@ -81,6 +82,7 @@ const Index = () => {
           </div>
         </div>
       </section>
+      <Footer />
     </div>
   );
 };

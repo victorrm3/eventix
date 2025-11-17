@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navegacion from "@/components/Navegacion";
 import EventGrid from "@/components/EventGrid";
+import Footer from "@/components/Footer";
 import { Search } from "lucide-react";
 import { peticionApi } from "@/lib/api";
 import { Evento } from "@/data/eventosFalsos";
@@ -99,6 +100,7 @@ const Eventos = () => {
           titulo={searchTerm ? `Resultados de Búsqueda (${eventosFiltrados.length})` : `Todos los Eventos (${eventos.length})`} 
         />
       )}
+      <Footer />
     </div>
   );
 };
