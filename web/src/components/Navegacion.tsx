@@ -49,10 +49,12 @@ const Navegacion = () => {
             {user ? (
               <>
                 {user.role === "admin" && (
-                  <button className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1 transition-colors">
-                    <Plus className="w-4 h-4" />
-                    <span>Crear Evento</span>
-                  </button>
+                  <Link to="/admin/crear-evento">
+                    <button className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1 transition-colors">
+                      <Plus className="w-4 h-4" />
+                      <span>Crear Evento</span>
+                    </button>
+                  </Link>
                 )}
                 <div className="hidden md:flex items-center space-x-3">
                   {user.profile_image ? (
