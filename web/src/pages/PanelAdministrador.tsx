@@ -1,11 +1,17 @@
 import Navigation from "@/components/Navegacion";
+import EventosActivos from "@/components/EventosActivos";
 import { Plus, Calendar, Users, DollarSign, BarChart3, TrendingUp } from "lucide-react";
 import { eventosFalsos } from "@/data/eventosFalsos";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { useState, useEffect } from "react";
+import { peticionApi } from "@/lib/api";
+import { Evento } from "@/data/eventosFalsos";
 
 const PanelAdministrador = () => {
   const navigate = useNavigate();
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [cargandoEventos, setCargandoEventos] = useState(true);
   
   const estadisticas = [
     {
@@ -62,6 +68,66 @@ const PanelAdministrador = () => {
     { dia: "Sab", asistentes: 680 },
     { dia: "Dom", asistentes: 590 },
   ];
+
+  // Cargar eventos activos del backend
+  useEffect(() => {
+    const cargarEventosActivos = async () => {
+      try {
+        setCargandoEventos(true);
+        const data = await peticionApi('/admin/events/active');
+        
+        const eventosFormateados = data.events.map((evento: any) => ({
+          id: evento.id.toString(),
+          titulo: evento.title,
+          descripcion: evento.description,
+          fecha: evento.date,
+          hora: evento.time,
+          lugar: evento.location,
+          precio: evento.price,
+          imagen: evento.image_url || '/placeholder.jpg',
+          personas: evento.attendees || 0,
+          maxPersonas: evento.capacity,
+        }));
+        
+        setEventos(eventosFormateados);
+      } catch (error) {
+        console.error('Error al cargar eventos activos:', error);
+        // Si hay error, usar eventos falsos como fallback
+        setEventos(eventosFalsos);
+      } finally {
+        setCargandoEventos(false);
+      }
+    };
+
+    cargarEventosActivos();
+  }, []);
+
+  const recargarEventos = () => {
+    const cargarEventosActivos = async () => {
+      try {
+        const data = await peticionApi('/admin/events/active');
+        
+        const eventosFormateados = data.events.map((evento: any) => ({
+          id: evento.id.toString(),
+          titulo: evento.title,
+          descripcion: evento.description,
+          fecha: evento.date,
+          hora: evento.time,
+          lugar: evento.location,
+          precio: evento.price,
+          imagen: evento.image_url || '/placeholder.jpg',
+          personas: evento.attendees || 0,
+          maxPersonas: evento.capacity,
+        }));
+        
+        setEventos(eventosFormateados);
+      } catch (error) {
+        console.error('Error al recargar eventos:', error);
+      }
+    };
+
+    cargarEventosActivos();
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -184,6 +250,14 @@ const PanelAdministrador = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        {/* Sección de Eventos Activos */}
+        <div className="mb-8">
+          <EventosActivos 
+            eventos={eventos} 
+            onEventoActualizado={recargarEventos}
+          />
         </div>
 
         {/* Eventos recientes */}

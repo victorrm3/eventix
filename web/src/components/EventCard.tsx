@@ -1,5 +1,6 @@
 import { Calendar, MapPin, Users, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { formatearFecha } from "@/lib/utils";
 
 interface Evento {
   id: string;
@@ -50,7 +51,7 @@ const EventCard = ({ evento }: EventCardProps) => {
         <div className="space-y-2 mb-4">
           <div className="flex items-center text-sm text-gray-500">
             <Calendar className="w-4 h-4 mr-2" />
-            {evento.fecha}
+            {formatearFecha(evento.fecha)}
           </div>
           <div className="flex items-center text-sm text-gray-500">
             <Clock className="w-4 h-4 mr-2" />

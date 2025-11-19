@@ -20,18 +20,28 @@ const Eventos = () => {
         setCargando(true);
         const data = await peticionApi('/events');
         
-        const eventosFormateados = data.events.map((evento: any) => ({
-          id: evento.id.toString(),
-          titulo: evento.title,
-          descripcion: evento.description,
-          fecha: evento.date,
-          hora: evento.time,
-          lugar: evento.location,
-          precio: evento.price,
-          imagen: evento.image_url || '/placeholder.jpg',
-          personas: evento.attendees,
-          maxPersonas: evento.capacity,
-        }));
+        const eventosFormateados = data.events
+          .filter((evento: any) => {
+            // Parsear manualmente para evitar problemas de zona horaria
+            const [year, month, day] = evento.date.split('-').map(Number);
+            const fechaEvento = new Date(year, month - 1, day);
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            fechaEvento.setHours(0, 0, 0, 0);
+            return fechaEvento.getTime() >= hoy.getTime();
+          })
+          .map((evento: any) => ({
+            id: evento.id.toString(),
+            titulo: evento.title,
+            descripcion: evento.description,
+            fecha: evento.date,
+            hora: evento.time,
+            lugar: evento.location,
+            precio: evento.price,
+            imagen: evento.image_url || '/placeholder.jpg',
+            personas: evento.attendees,
+            maxPersonas: evento.capacity,
+          }));
         
         setEventos(eventosFormateados);
       } catch (error) {

@@ -38,4 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Eventos (solo admins)
     Route::post('/events', [EventController::class, 'store']);
+    Route::put('/events/{id}', [EventController::class, 'update']);
+    Route::delete('/events/{id}', [EventController::class, 'destroy']);
+    Route::get('/admin/events/active', [EventController::class, 'getActiveEvents']);
 });
