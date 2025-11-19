@@ -244,6 +244,7 @@ class EventController extends Controller
         }
 
         // Validar los datos (todos opcionales con 'sometimes')
+        // Aceptar tanto JSON como FormData
         $validated = $request->validate([
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
@@ -255,17 +256,50 @@ class EventController extends Controller
             'capacity' => ['sometimes', 'integer', 'min:1'],
             'category' => ['sometimes', 'nullable', 'string', 'max:255'],
             'price' => ['sometimes', 'nullable', 'numeric', 'min:0'],
-            'shareable' => ['sometimes', 'boolean'],
+            'shareable' => ['sometimes'], // Aceptar boolean (JSON) o string (FormData)
+            'image' => ['sometimes', 'nullable', 'image', 'max:2048'], // Manejar imagen en FormData
             'image_url' => ['sometimes', 'nullable', 'string', 'max:500'],
         ]);
+
+        // Manejar la imagen si se envía
+        if ($request->hasFile('image')) {
+            // Eliminar imagen anterior si existe
+            if ($event->image_url) {
+                $oldImagePath = str_replace(Storage::disk('public')->url(''), '', $event->image_url);
+                if (Storage::disk('public')->exists($oldImagePath)) {
+                    Storage::disk('public')->delete($oldImagePath);
+                }
+            }
+            
+            $image = $request->file('image');
+            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $imagePath = $image->storeAs('events', $imageName, 'public');
+            $validated['image_url'] = Storage::disk('public')->url($imagePath);
+            unset($validated['image']); // Eliminar 'image' del array para evitar problemas
+        }
+
+        // Convertir shareable a boolean (puede venir como boolean de JSON o string de FormData)
+        if (isset($validated['shareable'])) {
+            $shareableValue = $validated['shareable'];
+            if (is_string($shareableValue)) {
+                $validated['shareable'] = in_array(strtolower($shareableValue), ['1', 'true'], true);
+            } elseif (is_numeric($shareableValue)) {
+                $validated['shareable'] = (bool)$shareableValue;
+            } elseif (is_bool($shareableValue)) {
+                $validated['shareable'] = $shareableValue;
+            }
+        }
 
         // Convertir tiempo de HH:MM a HH:MM:SS si es necesario
         if (isset($validated['time']) && strlen($validated['time']) === 5) {
             $validated['time'] .= ':00';
         }
 
-        // Actualizar el evento
+        // Actualizar el evento - usar update() que actualiza solo los campos presentes
         $event->update($validated);
+        
+        // Recargar el evento desde la base de datos para asegurar que tenemos los datos actualizados
+        $event->refresh();
 
         // Recargar con conteo de tickets
         $event->loadCount('tickets as attendees_count');
