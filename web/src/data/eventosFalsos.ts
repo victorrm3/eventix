@@ -16,6 +16,7 @@ export interface Evento {
   lat?: string;
   lng?: string;
   categoria?: string;
+  entradaCompartidaHabilitada?: boolean;
   creator?: {
     id: number;
     name: string;

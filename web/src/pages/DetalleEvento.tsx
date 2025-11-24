@@ -1,6 +1,6 @@
 import Navegacion from "@/components/Navegacion";
 import { Calendar, Clock, MapPin, Users, Share2, Heart } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { useState, useEffect } from "react";
 import { peticionApi } from "@/lib/api";
@@ -19,6 +19,7 @@ L.Icon.Default.mergeOptions({
 
 const DetalleEvento = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [evento, setEvento] = useState<Evento | null>(null);
   const [cargando, setCargando] = useState(true);
 
@@ -201,7 +202,10 @@ const DetalleEvento = () => {
               </div>
               
               <div className="space-y-4">
-                <button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 px-4 py-3 rounded-md font-semibold text-lg transition-all">
+                <button 
+                  onClick={() => navigate(`/comprar-entradas/${id}`)}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 px-4 py-3 rounded-md font-semibold text-lg transition-all"
+                >
                   Comprar Entradas
                 </button>
                 <button className="w-full border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-md font-medium transition-colors">

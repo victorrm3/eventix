@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\TicketController;
 
 Route::get('/health', function () {
     return response()->json(['status' => 'ok']);
@@ -35,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Entradas
     Route::get('/user/tickets', [UserController::class, 'getTickets']);
+    Route::post('/tickets/purchase', [TicketController::class, 'purchase']);
     
     // Eventos (solo admins)
     Route::post('/events', [EventController::class, 'store']);

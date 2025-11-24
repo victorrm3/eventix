@@ -1,15 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Calendar, Sparkles } from "lucide-react";
+import { Search, Calendar, Sparkles, Filter } from "lucide-react";
 import imagenPrincipal from "@/assets/imagen-princ.jpg";
 
 const Principal = () => {
   const [buscarTerm, setBuscarTerm] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
   const navegar = useNavigate();
 
   const handleBuscarEventos = () => {
-    const buscarQuery = buscarTerm.trim() ? `?search=${encodeURIComponent(buscarTerm)}` : '';
-    navegar(`/eventos${buscarQuery}`);
+    const params = new URLSearchParams();
+    if (buscarTerm.trim()) params.append('search', buscarTerm);
+    if (categoria) params.append('category', categoria);
+    if (fechaDesde) params.append('dateFrom', fechaDesde);
+    if (fechaHasta) params.append('dateTo', fechaHasta);
+    
+    const queryString = params.toString();
+    navegar(`/eventos${queryString ? `?${queryString}` : ''}`);
   };
   return (
     <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
@@ -48,16 +57,61 @@ const Principal = () => {
           </p>
 
           {/* Barra de busqueda */}
-          <div className="max-w-md mx-auto mb-8">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input 
-                placeholder="Buscar eventos..." 
-                className="pl-10 h-12 bg-white/80 backdrop-blur-sm border border-gray-200 focus:border-purple-500 shadow-lg rounded-md w-full px-3 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-                value={buscarTerm}
-                onChange={(e) => setBuscarTerm(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleBuscarEventos()}
-              />
+          <div className="max-w-3xl mx-auto mb-8">
+            <div className="flex flex-col gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input 
+                  placeholder="Buscar eventos..." 
+                  className="pl-10 h-12 bg-white/80 backdrop-blur-sm border border-gray-200 focus:border-purple-500 shadow-lg rounded-md w-full px-3 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                  value={buscarTerm}
+                  onChange={(e) => setBuscarTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleBuscarEventos()}
+                />
+              </div>
+              
+              {/* Filtros */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="relative">
+                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <select 
+                    className="pl-9 h-10 bg-white/80 backdrop-blur-sm border border-gray-200 focus:border-purple-500 rounded-md w-full px-3 focus:outline-none focus:ring-2 focus:ring-purple-500/20 appearance-none cursor-pointer"
+                    value={categoria}
+                    onChange={(e) => setCategoria(e.target.value)}
+                  >
+                    <option value="">Selecciona una categoría</option>
+                    <option value="Concierto">Concierto</option>
+                    <option value="Conferencia">Conferencia</option>
+                    <option value="Festival">Festival</option>
+                    <option value="Deportes">Deportes</option>
+                    <option value="Arte">Arte</option>
+                    <option value="Teatro">Teatro</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                </div>
+                
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input 
+                    type="date"
+                    placeholder="Desde"
+                    className="pl-9 h-10 bg-white/80 backdrop-blur-sm border border-gray-200 focus:border-purple-500 rounded-md w-full px-3 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                    value={fechaDesde}
+                    onChange={(e) => setFechaDesde(e.target.value)}
+                  />
+                </div>
+                
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input 
+                    type="date"
+                    placeholder="Hasta"
+                    className="pl-9 h-10 bg-white/80 backdrop-blur-sm border border-gray-200 focus:border-purple-500 rounded-md w-full px-3 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                    value={fechaHasta}
+                    onChange={(e) => setFechaHasta(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
