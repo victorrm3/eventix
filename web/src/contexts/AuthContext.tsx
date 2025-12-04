@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+//Clase de contexto de autentificación de React
 interface User {
   id: number;
   name: string;
@@ -17,8 +18,10 @@ interface AuthContextType {
   isLoading: boolean;
 }
 
+//Si React intenta usarlo sin Provider, lanzará un error.
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+//Permite usar el contexto más fácilmente y asegura que se esté usando dentro del AuthProvider.
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -35,7 +38,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_URL = 'http://localhost/api';
+  const API_URL = 'https://eventixs.es/api';
 
   useEffect(() => {
     // Verificar si hay un usuario guardado en localStorage

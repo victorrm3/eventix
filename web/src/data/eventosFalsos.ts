@@ -2,6 +2,7 @@ import eventoConcierto from "@/assets/evento-concierto.jpg";
 import eventoConferencia from "@/assets/evento-conferencia.jpg";
 import eventoFestival from "@/assets/evento-festival.jpg";
 
+//Clase creada al principio del desarollo del proyecto, para provar. Actualmente se utiliza para mostrar estadísticas falsas
 export interface Evento {
   id: string;
   titulo: string;

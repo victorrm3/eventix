@@ -44,37 +44,7 @@ class EventController extends Controller
                   ->orderBy('date', 'asc');
         }
 
-        $events = $query->get()->map(function($event) {
-            return [
-                'id' => $event->id,
-                'title' => $event->title,
-                'description' => $event->description,
-                'date' => $event->date->format('Y-m-d'),
-                'time' => substr($event->time, 0, 5), // Solo HH:MM
-                'location' => $event->location,
-                'lat' => $event->lat ? (string)$event->lat : null,
-                'lng' => $event->lng ? (string)$event->lng : null,
-                'capacity' => $event->capacity,
-                'attendees' => $event->attendees_count ?? 0,
-                'category' => $event->category,
-                'price' => (float)$event->price,
-                'image_url' => $event->image_url,
-                'shareable' => $event->shareable,
-                'created_by' => $event->created_by,
-                'creator' => $event->creator ? [
-                    'id' => $event->creator->id,
-                    'name' => $event->creator->name,
-                    'email' => $event->creator->email,
-                    'profile_image' => $event->creator->profile_image
-                        ? Storage::disk('public')->url('profile_images/' . $event->creator->profile_image)
-                        : null,
-                ] : null,
-                /*created_at y updated_at no están en el diagrama de la base de datos, porque eran columnas que me pedía
-                Laravel Sanctum para tener la interacción del Front con el Back*/
-                'created_at' => $event->created_at->toIso8601String(),
-                'updated_at' => $event->updated_at->toIso8601String(),
-            ];
-        });
+        $events = $query->get()->map(fn($event) => $this->formatearEvento($event, true));
 
         return response()->json([
             'success' => true,
@@ -100,33 +70,7 @@ class EventController extends Controller
 
         return response()->json([
             'success' => true,
-            'event' => [
-                'id' => $event->id,
-                'title' => $event->title,
-                'description' => $event->description,
-                'date' => $event->date->format('Y-m-d'),
-                'time' => substr($event->time, 0, 5), // Solo HH:MM
-                'location' => $event->location,
-                'lat' => $event->lat ? (string)$event->lat : null,
-                'lng' => $event->lng ? (string)$event->lng : null,
-                'capacity' => $event->capacity,
-                'attendees' => $event->attendees_count ?? 0,
-                'category' => $event->category,
-                'price' => (float)$event->price,
-                'image_url' => $event->image_url,
-                'shareable' => $event->shareable,
-                'created_by' => $event->created_by,
-                'creator' => [
-                    'id' => $event->creator->id,
-                    'name' => $event->creator->name,
-                    'email' => $event->creator->email,
-                    'profile_image' => $event->creator->profile_image
-                        ? \Illuminate\Support\Facades\Storage::disk('public')->url('profile_images/' . $event->creator->profile_image)
-                        : null,
-                ],
-                'created_at' => $event->created_at->toIso8601String(),
-                'updated_at' => $event->updated_at->toIso8601String(),
-            ]
+            'event' => $this->formatearEvento($event, true)
         ]);
     }
 
@@ -135,15 +79,10 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
-        // Verificar que el usuario sea admin
-        $user = Auth::user();
-        if ($user->role !== 'admin') {
-            return response()->json([
-                'message' => 'No tienes permisos para crear eventos'
-            ], 403);
+        if (!$this->esAdmin()) {
+            return $this->respuestaNoAutorizada('No tienes permisos para crear eventos');
         }
 
-        // Validar los datos
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -155,63 +94,29 @@ class EventController extends Controller
             'capacity' => ['required', 'integer', 'min:1'],
             'category' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'numeric', 'min:0'],
-            'shareable' => ['nullable', 'string', 'in:0,1'],
-            'image' => ['nullable', 'image', 'max:2048'], // Máximo 2MB
+            'shareable' => ['nullable', 'boolean'],
+            'image_url' => ['nullable', 'string', 'max:500'],
         ]);
 
-        // Manejar la imagen
-        $imageUrl = null;
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-            $imagePath = $image->storeAs('events', $imageName, 'public');
-            $imageUrl = Storage::disk('public')->url($imagePath);
-        }
-
-        // Convertir tiempo de HH:MM a HH:MM:SS si es necesario
-        $time = $validated['time'];
-        if (strlen($time) === 5) { // Formato HH:MM
-            $time .= ':00'; // Convertir a HH:MM:SS
-        }
-
-        // Crear el evento
         $event = Event::create([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'date' => $validated['date'],
-            'time' => $time,
+            'time' => $this->normalizarTiempo($validated['time']),
             'location' => $validated['location'],
             'lat' => $validated['lat'] ?? null,
             'lng' => $validated['lng'] ?? null,
             'capacity' => $validated['capacity'],
             'category' => $validated['category'] ?? null,
             'price' => $validated['price'] ?? 0,
-            'shareable' => isset($validated['shareable']) ? (bool)$validated['shareable'] : false,
-            'image_url' => $imageUrl,
-            'created_by' => $user->id,
+            'shareable' => $validated['shareable'] ?? false,
+            'image_url' => $validated['image_url'] ?? null,
+            'created_by' => Auth::id(),
         ]);
 
-        // Recargar el evento con el conteo de tickets
         $event->loadCount('tickets as attendees_count');
 
-        return response()->json([
-            'id' => $event->id,
-            'title' => $event->title,
-            'description' => $event->description,
-            'date' => $event->date->format('Y-m-d'),
-            'time' => substr($event->time, 0, 5), // Solo HH:MM
-            'location' => $event->location,
-            'lat' => $event->lat ? (string)$event->lat : null,
-            'lng' => $event->lng ? (string)$event->lng : null,
-            'capacity' => $event->capacity,
-            'attendees' => $event->attendees_count ?? 0,
-            'category' => $event->category,
-            'price' => (float)$event->price,
-            'shareable' => $event->shareable ? 1 : 0,
-            'image_url' => $event->image_url,
-            'created_by' => $event->created_by,
-            'created_at' => $event->created_at->toIso8601String(),
-        ], 201);
+        return response()->json($this->formatearEvento($event, false), 201);
     }
 
     /**
@@ -219,32 +124,20 @@ class EventController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $user = Auth::user();
-        
-        // Verificar que el usuario es admin
-        if ($user->role !== 'admin') {
-            return response()->json([
-                'message' => 'No autorizado. Solo administradores pueden editar eventos.'
-            ], 403);
+        if (!$this->esAdmin()) {
+            return $this->respuestaNoAutorizada('Solo los administradores pueden editar eventos.');
         }
 
         $event = Event::find($id);
         
         if (!$event) {
-            return response()->json([
-                'message' => 'Evento no encontrado'
-            ], 404);
+            return response()->json(['message' => 'Evento no encontrado'], 404);
         }
 
-        // Verificar que el admin creó este evento
-        if ($event->created_by !== $user->id) {
-            return response()->json([
-                'message' => 'No autorizado. Solo puedes editar eventos que creaste.'
-            ], 403);
+        if (!$this->esPropietarioEvento($event)) {
+            return $this->respuestaNoAutorizada('Solo puedes editar eventos que creaste.');
         }
 
-        // Validar los datos (todos opcionales con 'sometimes')
-        // Aceptar tanto JSON como FormData
         $validated = $request->validate([
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
@@ -256,170 +149,59 @@ class EventController extends Controller
             'capacity' => ['sometimes', 'integer', 'min:1'],
             'category' => ['sometimes', 'nullable', 'string', 'max:255'],
             'price' => ['sometimes', 'nullable', 'numeric', 'min:0'],
-            'shareable' => ['sometimes'], // Aceptar boolean (JSON) o string (FormData)
-            'image' => ['sometimes', 'nullable', 'image', 'max:2048'], // Manejar imagen en FormData
+            'shareable' => ['sometimes', 'boolean'],
             'image_url' => ['sometimes', 'nullable', 'string', 'max:500'],
         ]);
 
-        // Manejar la imagen si se envía
-        if ($request->hasFile('image')) {
-            // Eliminar imagen anterior si existe
-            if ($event->image_url) {
-                $oldImagePath = str_replace(Storage::disk('public')->url(''), '', $event->image_url);
-                if (Storage::disk('public')->exists($oldImagePath)) {
-                    Storage::disk('public')->delete($oldImagePath);
-                }
-            }
-            
-            $image = $request->file('image');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-            $imagePath = $image->storeAs('events', $imageName, 'public');
-            $validated['image_url'] = Storage::disk('public')->url($imagePath);
-            unset($validated['image']); // Eliminar 'image' del array para evitar problemas
+        if (isset($validated['time'])) {
+            $validated['time'] = $this->normalizarTiempo($validated['time']);
         }
 
-        // Convertir shareable a boolean (puede venir como boolean de JSON o string de FormData)
-        if (isset($validated['shareable'])) {
-            $shareableValue = $validated['shareable'];
-            if (is_string($shareableValue)) {
-                $validated['shareable'] = in_array(strtolower($shareableValue), ['1', 'true'], true);
-            } elseif (is_numeric($shareableValue)) {
-                $validated['shareable'] = (bool)$shareableValue;
-            } elseif (is_bool($shareableValue)) {
-                $validated['shareable'] = $shareableValue;
-            }
-        }
-
-        // Convertir tiempo de HH:MM a HH:MM:SS si es necesario
-        if (isset($validated['time']) && strlen($validated['time']) === 5) {
-            $validated['time'] .= ':00';
-        }
-
-        // Actualizar el evento - usar update() que actualiza solo los campos presentes
         $event->update($validated);
-        
-        // Recargar el evento desde la base de datos para asegurar que tenemos los datos actualizados
         $event->refresh();
-
-        // Recargar con conteo de tickets
         $event->loadCount('tickets as attendees_count');
 
         return response()->json([
             'message' => 'Evento actualizado exitosamente',
-            'event' => [
-                'id' => $event->id,
-                'title' => $event->title,
-                'description' => $event->description,
-                'date' => $event->date->format('Y-m-d'),
-                'time' => substr($event->time, 0, 5), // Solo HH:MM
-                'location' => $event->location,
-                'lat' => $event->lat ? (string)$event->lat : null,
-                'lng' => $event->lng ? (string)$event->lng : null,
-                'capacity' => $event->capacity,
-                'category' => $event->category,
-                'price' => (float)$event->price,
-                'shareable' => $event->shareable,
-                'image_url' => $event->image_url,
-                'attendees' => $event->attendees_count ?? 0,
-                'updated_at' => $event->updated_at->toIso8601String(),
-            ]
+            'event' => $this->formatearEvento($event, false)
         ], 200);
     }
 
     /**
-     * Eliminar un evento y procesar reembolsos (solo admins, solo eventos que crearon)
+     * Eliminar un evento (solo admins, solo eventos que crearon)
      */
     public function destroy($id)
     {
-        $user = Auth::user();
-        
-        // Verificar que el usuario es admin
-        if ($user->role !== 'admin') {
-            return response()->json([
-                'message' => 'No autorizado. Solo administradores pueden eliminar eventos.'
-            ], 403);
+        if (!$this->esAdmin()) {
+            return $this->respuestaNoAutorizada('Solo administradores pueden eliminar eventos.');
         }
 
         $event = Event::find($id);
         
         if (!$event) {
-            return response()->json([
-                'message' => 'Evento no encontrado'
-            ], 404);
+            return response()->json(['message' => 'Evento no encontrado'], 404);
         }
 
-        // Verificar que el admin creó este evento
-        if ($event->created_by !== $user->id) {
-            return response()->json([
-                'message' => 'No autorizado. Solo puedes eliminar eventos que creaste.'
-            ], 403);
+        if (!$this->esPropietarioEvento($event)) {
+            return $this->respuestaNoAutorizada('Solo puedes eliminar eventos que creaste.');
         }
 
         DB::beginTransaction();
         
         try {
-            // Obtener todos los tickets del evento
-            $tickets = Ticket::where('event_id', $id)->get();
+            $ticketCount = Ticket::where('event_id', $id)->count();
             
-            $totalRefunded = 0;
-            $refundsProcessed = 0;
-            $ticketPrice = 0;
-            $ticketCount = $tickets->count();
-
-            // Calcular reembolsos (mock para pruebas)
-            foreach ($tickets as $ticket) {
-                $ticketPrice = $ticket->price ?? $event->price ?? 0;
-                $totalRefunded += $ticketPrice;
-                $refundsProcessed++;
-            }
-
-            // Si no hay tickets pero hay precio del evento, usar el precio del evento
-            if ($ticketCount === 0 && $event->price > 0) {
-                $ticketPrice = $event->price;
-            }
-
-            // Crear directorio de reembolsos si no existe
-            $refundsPath = storage_path('app/refunds');
-            if (!file_exists($refundsPath)) {
-                mkdir($refundsPath, 0755, true);
-            }
-
-            // Crear archivo .txt con información de reembolsos (mock)
-            $filename = 'refund_event_' . $id . '_' . date('Y-m-d_His') . '.txt';
-            $filepath = $refundsPath . '/' . $filename;
-            
-            $content = "REEMBOLSOS DE EVENTO (MOCK - SOLO PARA PRUEBAS)\n";
-            $content .= "================================================\n\n";
-            $content .= "Evento ID: " . $event->id . "\n";
-            $content .= "Título: " . $event->title . "\n";
-            $content .= "Fecha: " . $event->date->format('Y-m-d') . "\n";
-            $content .= "Eliminado por: " . $user->name . " (ID: " . $user->id . ")\n";
-            $content .= "Fecha de eliminación: " . now()->format('Y-m-d H:i:s') . "\n\n";
-            $content .= "INFORMACIÓN DE TICKETS:\n";
-            $content .= "-----------------------\n";
-            $content .= "Total de tickets relacionados con el evento: " . $ticketCount . "\n";
-            $content .= "Precio por ticket: €" . number_format((float)$ticketPrice, 2, ',', '.') . "\n\n";
-            $content .= "CÁLCULO DE REEMBOLSOS:\n";
-            $content .= "----------------------\n";
-            $content .= "Número de tickets × Precio por ticket\n";
-            $content .= $ticketCount . " × €" . number_format((float)$ticketPrice, 2, ',', '.') . "\n";
-            $content .= "= €" . number_format((float)$totalRefunded, 2, ',', '.') . "\n\n";
-            $content .= "NOTA: Este es un archivo de prueba. No se han procesado reembolsos reales.\n";
-            
-            file_put_contents($filepath, $content);
-
             // Eliminar todos los tickets del evento
             Ticket::where('event_id', $id)->delete();
-
-            // Eliminar el evento de la base de datos
+            
+            // Eliminar el evento
             $event->delete();
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Evento eliminado exitosamente. Reembolsos procesados.',
-                'refunds_processed' => $refundsProcessed,
-                'total_refunded' => number_format((float)$totalRefunded, 2, '.', '')
+                'message' => 'Evento eliminado exitosamente',
+                'tickets_deleted' => $ticketCount
             ], 200);
             
         } catch (\Exception $e) {
@@ -435,24 +217,20 @@ class EventController extends Controller
     /**
      * Obtener eventos activos del administrador (solo eventos futuros que creó)
      */
-    public function getActiveEvents(Request $request)
+    public function obtenerEventosActivos(Request $request)
     {
-        $user = Auth::user();
-        
-        if ($user->role !== 'admin') {
-            return response()->json([
-                'message' => 'No autorizado'
-            ], 403);
+        if (!$this->esAdmin()) {
+            return $this->respuestaNoAutorizada('No autorizado');
         }
 
         $sortBy = $request->get('sort_by', 'date');
         $order = $request->get('order', 'asc');
         $perPage = $request->get('per_page', 20);
 
-        $query = Event::where('created_by', $user->id)
+        $query = Event::where('created_by', Auth::id())
                      ->where('date', '>=', now()->toDateString());
 
-        // Agregar ordenamiento
+        // Lógica de ordenar
         if ($sortBy === 'attendees') {
             $query->withCount('tickets as tickets_count')
                   ->orderBy('tickets_count', $order);
@@ -465,7 +243,6 @@ class EventController extends Controller
 
         $events = $query->paginate($perPage);
 
-        // Agregar información calculada
         $events->getCollection()->transform(function ($event) {
             $attendees = $event->tickets()->count();
             $revenue = $event->tickets()->sum('price') ?? 0;
@@ -475,7 +252,7 @@ class EventController extends Controller
                 'title' => $event->title,
                 'description' => $event->description,
                 'date' => $event->date->format('Y-m-d'),
-                'time' => substr($event->time, 0, 5), // Solo HH:MM
+                'time' => substr($event->time, 0, 5),
                 'location' => $event->location,
                 'lat' => $event->lat ? (string)$event->lat : null,
                 'lng' => $event->lng ? (string)$event->lng : null,
@@ -496,5 +273,93 @@ class EventController extends Controller
             'per_page' => $events->perPage(),
             'events' => $events->items()
         ], 200);
+    }
+
+    /**
+     * Formatear evento para respuesta JSON
+     */
+    private function formatearEvento(Event $event, bool $incluirCreador = false): array
+    {
+        $formateado = [
+            'id' => $event->id,
+            'title' => $event->title,
+            'description' => $event->description,
+            'date' => $event->date->format('Y-m-d'),
+            'time' => substr($event->time, 0, 5),
+            'location' => $event->location,
+            'lat' => $event->lat ? (string)$event->lat : null,
+            'lng' => $event->lng ? (string)$event->lng : null,
+            'capacity' => $event->capacity,
+            'attendees' => $event->attendees_count ?? $event->tickets()->count(),
+            'category' => $event->category,
+            'price' => (float)$event->price,
+            'image_url' => $event->image_url,
+            'shareable' => $event->shareable,
+            'created_by' => $event->created_by,
+        ];
+
+        if ($incluirCreador && $event->relationLoaded('creator')) {
+            $formateado['creator'] = $this->formatearCreador($event->creator);
+            $formateado['created_at'] = $event->created_at->toIso8601String();
+            $formateado['updated_at'] = $event->updated_at->toIso8601String();
+        } else {
+            $formateado['created_at'] = $event->created_at->toIso8601String();
+            if ($event->wasRecentlyCreated || $event->wasChanged()) {
+                $formateado['updated_at'] = $event->updated_at->toIso8601String();
+            }
+        }
+
+        return $formateado;
+    }
+
+    /**
+     * Formatear información del creador
+     */
+    private function formatearCreador($creador): ?array
+    {
+        if (!$creador) {
+            return null;
+        }
+
+        return [
+            'id' => $creador->id,
+            'name' => $creador->name,
+            'email' => $creador->email,
+            'profile_image' => $creador->profile_image
+                ? Storage::disk('public')->url('profile_images/' . $creador->profile_image)
+                : null,
+        ];
+    }
+
+    /**
+     * Normalizar tiempo de HH:MM a HH:MM:SS
+     */
+    private function normalizarTiempo(string $tiempo): string
+    {
+        return strlen($tiempo) === 5 ? $tiempo . ':00' : $tiempo;
+    }
+
+    /**
+     * Verificar si el usuario actual es admin
+     */
+    private function esAdmin(): bool
+    {
+        return Auth::user()?->role === 'admin';
+    }
+
+    /**
+     * Verificar si el usuario es propietario del evento
+     */
+    private function esPropietarioEvento(Event $evento): bool
+    {
+        return $evento->created_by === Auth::id();
+    }
+
+    /**
+     * Respuesta de no autorizado
+     */
+    private function respuestaNoAutorizada(string $mensaje)
+    {
+        return response()->json(['message' => $mensaje], 403);
     }
 }

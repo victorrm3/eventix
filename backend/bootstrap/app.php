@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Para rutas API, siempre devolver JSON en lugar de HTML
+        // Para rutas API, siempre devolver JSON en lugar de HTML para evitar errores
         $exceptions->shouldRenderJsonWhen(function ($request, $e) {
             return $request->is('api/*') || $request->expectsJson();
         });

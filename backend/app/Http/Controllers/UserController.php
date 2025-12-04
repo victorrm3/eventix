@@ -17,7 +17,7 @@ class UserController extends Controller
      * Actualizar perfil de usuario
      * PUT /api/user/profile
      */
-    public function updateProfile(Request $request)
+    public function actualizarPerfil(Request $request)
     {
         $user = Auth::user();
 
@@ -50,7 +50,7 @@ class UserController extends Controller
      * Actualizar foto de perfil
      * POST /api/user/profile-image
      */
-    public function updateProfileImage(Request $request)
+    public function actualizarImagenPerfil(Request $request)
     {
         $request->validate([
             'profile_image' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
@@ -95,7 +95,7 @@ class UserController extends Controller
      * Cambiar contraseña
      * PUT /api/user/password
      */
-    public function changePassword(Request $request)
+    public function cambiarContrasena(Request $request)
     {
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
@@ -121,10 +121,10 @@ class UserController extends Controller
     }
 
     /**
-     * Obtener amigos del usuario (no implementado aún)
+     * Obtener amigos del usuario
      * GET /api/user/friends
      */
-    public function getFriends()
+    public function obtenerAmigos()
     {
         $user = Auth::user();
 
@@ -136,10 +136,10 @@ class UserController extends Controller
     }
 
     /**
-     * Agregar amigo (no implementado aún)
+     * Agregar amigo
      * POST /api/user/friends
      */
-    public function addFriend(Request $request)
+    public function agregarAmigo(Request $request)
     {
         $validated = $request->validate([
             'email' => ['required', 'string', 'email', 'exists:users,email'],
@@ -188,7 +188,7 @@ class UserController extends Controller
      * Eliminar amigo
      * DELETE /api/user/friends/{id}
      */
-    public function removeFriend($id)
+    public function eliminarAmigo($id)
     {
         $user = Auth::user();
 
@@ -213,7 +213,7 @@ class UserController extends Controller
      * Obtener mis entradas
      * GET /api/user/tickets
      */
-    public function getTickets()
+    public function obtenerEntradas()
     {
         $user = Auth::user();
 

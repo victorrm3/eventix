@@ -15,7 +15,7 @@ class User extends Authenticatable
 
 
     /**
-     * Atributos rellenables
+     * Atributos editables
      *
      * @var list<string>
      */

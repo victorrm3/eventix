@@ -8,11 +8,13 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    //Función de registrar un usuario
     public function register(Request $request)
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            //Mínimo 8 caracteres para poder guardar la contraseña
             'password' => ['required', 'string', 'min:8'],
         ]);
 
@@ -24,7 +26,7 @@ class AuthController extends Controller
             'role' => 'user',
         ]);
 
-        // Laravel Sanctum instalado para los tokens y APIs
+        // Crea un token usando Laravel Sanctum que servirá para validar al usuario en peticiones posteriores
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -34,18 +36,19 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                //Si el usuario tiene imagen de perfil, devuelve la URL pública
                 'profile_image' => $user->profile_image ? \Illuminate\Support\Facades\Storage::disk('public')->url('profile_images/' . $user->profile_image) : null,
             ],
         ], 201);
     }
-
+    //Función para el login
     public function login(Request $request)
     {
         $validated = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
-
+        //Validar
         if (!Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
             return response()->json([
                 'message' => 'Credenciales inválidas',
@@ -54,7 +57,7 @@ class AuthController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $token = $user->createToken('auth_token')->plainTextToken; // Requiere Sanctum
+        $token = $user->createToken('auth_token')->plainTextToken; // Se genera un nuevo token para esta sesión
 
         return response()->json([
             'token' => $token,

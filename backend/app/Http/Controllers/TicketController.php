@@ -165,7 +165,7 @@ class TicketController extends Controller
                 \Log::info('Email enviado exitosamente al comprador: ' . $user->email);
             } catch (\Exception $e) {
                 \Log::error('Error enviando email al comprador: ' . $e->getMessage());
-                \Log::error('Stack trace: ' . $e->getTraceAsString());
+                \Log::error('Rastro del error: ' . $e->getTraceAsString());
             }
 
             // Si es entrada compartida, enviar email al usuario compartido
@@ -175,7 +175,7 @@ class TicketController extends Controller
                     \Log::info('Email enviado exitosamente al usuario compartido: ' . $sharedUser->email);
                 } catch (\Exception $e) {
                     \Log::error('Error enviando email al usuario compartido: ' . $e->getMessage());
-                    \Log::error('Stack trace: ' . $e->getTraceAsString());
+                    \Log::error('Rastro del error: ' . $e->getTraceAsString());
                 }
             }
 
@@ -200,7 +200,7 @@ class TicketController extends Controller
             
         } catch (\Exception $e) {
             \Log::error('Error en purchase: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            \Log::error('Rastro del error: ' . $e->getTraceAsString());
             
             return response()->json([
                 'success' => false,

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, Calendar, Sparkles, Filter } from "lucide-react";
 import imagenPrincipal from "@/assets/imagen-princ.jpg";
 
+//Componente de la página principal de la imagen gigante con fundido blanco
 const Principal = () => {
   const [buscarTerm, setBuscarTerm] = useState("");
   const [categoria, setCategoria] = useState("");

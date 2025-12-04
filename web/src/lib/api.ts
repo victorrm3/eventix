@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost/api';
+const API_URL = 'https://eventixs.es/api';
 
 export const getAuthToken = () => {
   return localStorage.getItem('token');
@@ -11,11 +11,11 @@ export const peticionApi = async (endpoint: string, options: RequestInit = {}) =
     'Content-Type': 'application/json',
     ...options.headers,
   };
-
+//Añadir autorización si hay
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-
+//Enviar la petición a la API
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,

@@ -16,6 +16,8 @@ import {
 import { peticionApi } from "@/lib/api";
 import { toast } from "sonner";
 
+//Este componente pertenece al panel de Administración del Admin mas concretamente al CRUD de Eventos dentro de este
+
 interface EventosActivosProps {
   eventos: Evento[];
   onEventoActualizado: () => void;

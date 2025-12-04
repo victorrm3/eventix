@@ -13,7 +13,7 @@ Route::get('/health', function () {
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Eventos (públicos, solo eventos shareable)
+// Eventos
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{id}', [EventController::class, 'show']);
 
@@ -25,22 +25,22 @@ Route::options('/{any}', function () {
 // Rutas protegidas con autenticación Sanctum
 Route::middleware('auth:sanctum')->group(function () {
     // Perfil de usuario
-    Route::put('/user/profile', [UserController::class, 'updateProfile']);
-    Route::post('/user/profile-image', [UserController::class, 'updateProfileImage']);
-    Route::put('/user/password', [UserController::class, 'changePassword']);
+    Route::put('/user/profile', [UserController::class, 'actualizarPerfil']);
+    Route::post('/user/profile-image', [UserController::class, 'actualizarImagenPerfil']);
+    Route::put('/user/password', [UserController::class, 'cambiarContrasena']);
     
     // Amigos
-    Route::get('/user/friends', [UserController::class, 'getFriends']);
-    Route::post('/user/friends', [UserController::class, 'addFriend']);
-    Route::delete('/user/friends/{id}', [UserController::class, 'removeFriend']);
+    Route::get('/user/friends', [UserController::class, 'obtenerAmigos']);
+    Route::post('/user/friends', [UserController::class, 'agregarAmigo']);
+    Route::delete('/user/friends/{id}', [UserController::class, 'eliminarAmigo']);
     
     // Entradas
-    Route::get('/user/tickets', [UserController::class, 'getTickets']);
+    Route::get('/user/tickets', [UserController::class, 'obtenerEntradas']);
     Route::post('/tickets/purchase', [TicketController::class, 'purchase']);
     
     // Eventos (solo admins)
     Route::post('/events', [EventController::class, 'store']);
     Route::put('/events/{id}', [EventController::class, 'update']);
     Route::delete('/events/{id}', [EventController::class, 'destroy']);
-    Route::get('/admin/events/active', [EventController::class, 'getActiveEvents']);
+    Route::get('/admin/events/active', [EventController::class, 'obtenerEventosActivos']);
 });

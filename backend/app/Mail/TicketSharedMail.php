@@ -19,7 +19,7 @@ class TicketSharedMail extends Mailable
     public $qrCodeImage;
 
     /**
-     * Create a new message instance.
+     * Crear un nuevo mensaje
      */
     public function __construct(Ticket $ticket, Event $event, User $buyer, $qrCodeImage)
     {
@@ -30,7 +30,7 @@ class TicketSharedMail extends Mailable
     }
 
     /**
-     * Build the message.
+     * Estructura del mensaje
      */
     public function build()
     {

@@ -80,7 +80,7 @@
     <div class="header">
         @if(isset($logoEmbed))
             <img src="{{ $logoEmbed }}" alt="Eventix Logo" style="max-width: 200px; height: auto; margin-bottom: 10px;">
-            <h2 style="margin-top: 15px; font-size: 1.5em;">🎉 Te han compartido una entrada</h2>
+            <h2 style="margin-top: 15px; font-size: 1.5em;">Te han compartido una entrada</h2>
         @else
             <h1>Te han compartido una entrada!</h1>
         @endif
@@ -97,17 +97,17 @@
             <h2 style="margin-top: 0;">{{ $event->title }}</h2>
             
             <div class="info-row">
-                <span class="info-label">📅 Fecha:</span>
+                <span class="info-label">Fecha:</span>
                 <span class="info-value">{{ $event->date->format('d/m/Y') }}</span>
             </div>
             
             <div class="info-row">
-                <span class="info-label">🕐 Hora:</span>
+                <span class="info-label">Hora:</span>
                 <span class="info-value">{{ substr($event->time, 0, 5) }}</span>
             </div>
             
             <div class="info-row">
-                <span class="info-label">📍 Ubicación:</span>
+                <span class="info-label">Ubicación:</span>
                 <span class="info-value">{{ $event->location }}</span>
             </div>
         </div>
