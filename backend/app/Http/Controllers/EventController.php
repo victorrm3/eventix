@@ -183,7 +183,11 @@ class EventController extends Controller
             'event_id' => $id,
             'has_file' => $request->hasFile('image'),
             'all_files' => $request->allFiles(),
-            'content_type' => $request->header('Content-Type')
+            'all_input' => $request->all(),
+            'content_type' => $request->header('Content-Type'),
+            'method' => $request->method(),
+            'request_keys' => array_keys($request->all()),
+            'files_keys' => array_keys($request->allFiles())
         ]);
         
         // Preparar reglas de validación

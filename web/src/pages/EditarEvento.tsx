@@ -185,6 +185,13 @@ const EditarEvento = () => {
 
       // Si hay una nueva imagen, necesitamos usar FormData
       if (formData.image) {
+        console.log('Preparando FormData con imagen:', {
+          imageFile: formData.image,
+          fileName: formData.image.name,
+          fileSize: formData.image.size,
+          fileType: formData.image.type
+        });
+        
         const formDataToSend = new FormData();
         Object.keys(dataToSend).forEach(key => {
           if (dataToSend[key] !== null && dataToSend[key] !== undefined) {
@@ -195,10 +202,24 @@ const EditarEvento = () => {
             }
           }
         });
+        
+        // Añadir la imagen al FormData
         formDataToSend.append("image", formData.image);
+        
+        // Verificar que la imagen se añadió correctamente
+        console.log('FormData preparado:', {
+          hasImage: formDataToSend.has('image'),
+          formDataEntries: Array.from(formDataToSend.entries()).map(([key, value]) => ({
+            key,
+            value: value instanceof File ? { name: value.name, size: value.size, type: value.type } : value
+          }))
+        });
+
+        // Para FormData con archivos, algunos servidores requieren POST con _method=PUT
+        formDataToSend.append("_method", "PUT");
 
         const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://eventixs.es/api'}/events/${id}`, {
-          method: "PUT",
+          method: "POST",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
