@@ -204,12 +204,24 @@ class EventController extends Controller
         }
 
         // Procesar imagen si se envió una nueva
+        $newImageUrl = null;
         if ($request->hasFile('image')) {
             // Eliminar imagen anterior si existe
             if ($event->image_url) {
                 // Extraer el nombre del archivo de la URL
-                $oldImagePath = str_replace(Storage::disk('public')->url(''), '', $event->image_url);
-                if ($oldImagePath) {
+                $baseUrl = Storage::disk('public')->url('');
+                $oldImagePath = str_replace($baseUrl, '', $event->image_url);
+                
+                // Si la URL contiene el dominio completo, extraer solo la ruta relativa
+                if (strpos($oldImagePath, 'http') === 0) {
+                    // Es una URL completa, extraer solo la parte después de /storage/
+                    $parts = explode('/storage/', $oldImagePath);
+                    if (count($parts) > 1) {
+                        $oldImagePath = $parts[1];
+                    }
+                }
+                
+                if ($oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
                     Storage::disk('public')->delete($oldImagePath);
                 }
             }
@@ -218,11 +230,25 @@ class EventController extends Controller
             $image = $request->file('image');
             $imageName = time() . '_' . Auth::id() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
             $imagePath = $image->storeAs('event_images', $imageName, 'public');
-            $validated['image_url'] = Storage::disk('public')->url('event_images/' . $imageName);
+            $newImageUrl = Storage::disk('public')->url('event_images/' . $imageName);
+            
+            // Asegurarse de que image_url se añade al array validated
+            $validated['image_url'] = $newImageUrl;
         }
 
+        // Actualizar el evento con los datos validados
         $event->update($validated);
+        
+        // Refrescar el modelo para obtener los datos actualizados
         $event->refresh();
+        
+        // Verificar que la imagen se actualizó correctamente (por si acaso)
+        if ($newImageUrl !== null && $event->image_url !== $newImageUrl) {
+            $event->image_url = $newImageUrl;
+            $event->save();
+            $event->refresh();
+        }
+        
         $event->loadCount('tickets as attendees_count');
 
         return response()->json([
