@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class EventController extends Controller
 {
@@ -177,6 +178,14 @@ class EventController extends Controller
             return $this->respuestaNoAutorizada('Solo puedes editar eventos que creaste.');
         }
 
+        // Log inicial para debuggear
+        \Log::info('Inicio de actualización de evento', [
+            'event_id' => $id,
+            'has_file' => $request->hasFile('image'),
+            'all_files' => $request->allFiles(),
+            'content_type' => $request->header('Content-Type')
+        ]);
+        
         // Preparar reglas de validación
         $rules = [
             'title' => ['sometimes', 'string', 'max:255'],
@@ -197,7 +206,15 @@ class EventController extends Controller
             $rules['image'] = ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'mimetypes:image/jpeg,image/png,image/jpg,image/gif,image/x-png', 'max:5120'];
         }
         
-        $validated = $request->validate($rules);
+        try {
+            $validated = $request->validate($rules);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Error de validación al actualizar evento', [
+                'event_id' => $id,
+                'errors' => $e->errors()
+            ]);
+            throw $e;
+        }
 
         if (isset($validated['time'])) {
             $validated['time'] = $this->normalizarTiempo($validated['time']);
@@ -206,44 +223,150 @@ class EventController extends Controller
         // Procesar imagen si se envió una nueva
         $newImageUrl = null;
         if ($request->hasFile('image')) {
-            // Eliminar imagen anterior si existe
-            if ($event->image_url) {
-                // Extraer el nombre del archivo de la URL
-                $baseUrl = Storage::disk('public')->url('');
-                $oldImagePath = str_replace($baseUrl, '', $event->image_url);
+            try {
+                // Verificar que el archivo se recibió correctamente
+                $image = $request->file('image');
                 
-                // Si la URL contiene el dominio completo, extraer solo la ruta relativa
-                if (strpos($oldImagePath, 'http') === 0) {
-                    // Es una URL completa, extraer solo la parte después de /storage/
-                    $parts = explode('/storage/', $oldImagePath);
-                    if (count($parts) > 1) {
-                        $oldImagePath = $parts[1];
+                if (!$image->isValid()) {
+                    \Log::error('Archivo de imagen no válido al actualizar evento', [
+                        'event_id' => $id,
+                        'error' => $image->getError()
+                    ]);
+                    return response()->json([
+                        'message' => 'El archivo de imagen no es válido',
+                        'error' => $image->getError()
+                    ], 422);
+                }
+                
+                // Eliminar imagen anterior si existe
+                if ($event->image_url) {
+                    // Extraer el nombre del archivo de la URL
+                    $baseUrl = Storage::disk('public')->url('');
+                    $oldImagePath = str_replace($baseUrl, '', $event->image_url);
+                    
+                    // Si la URL contiene el dominio completo, extraer solo la ruta relativa
+                    if (strpos($oldImagePath, 'http') === 0) {
+                        // Es una URL completa, extraer solo la parte después de /storage/
+                        $parts = explode('/storage/', $oldImagePath);
+                        if (count($parts) > 1) {
+                            $oldImagePath = $parts[1];
+                        }
+                    }
+                    
+                    if ($oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
+                        Storage::disk('public')->delete($oldImagePath);
                     }
                 }
-                
-                if ($oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
-                    Storage::disk('public')->delete($oldImagePath);
-                }
-            }
 
-            // Guardar nueva imagen
-            $image = $request->file('image');
-            $imageName = time() . '_' . Auth::id() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-            $imagePath = $image->storeAs('event_images', $imageName, 'public');
-            $newImageUrl = Storage::disk('public')->url('event_images/' . $imageName);
-            
-            // Asegurarse de que image_url se añade al array validated
-            $validated['image_url'] = $newImageUrl;
+                // Asegurar que el directorio existe
+                $directory = storage_path('app/public/event_images');
+                if (!file_exists($directory)) {
+                    File::makeDirectory($directory, 0755, true);
+                }
+
+                // Guardar nueva imagen
+                $imageName = time() . '_' . Auth::id() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                
+                // Intentar guardar el archivo
+                $imagePath = $image->storeAs('event_images', $imageName, 'public');
+                
+                \Log::info('Intento de guardar imagen', [
+                    'event_id' => $id,
+                    'image_name' => $imageName,
+                    'image_path' => $imagePath,
+                    'full_path' => storage_path('app/public/event_images/' . $imageName),
+                    'file_exists' => file_exists(storage_path('app/public/event_images/' . $imageName)),
+                    'storage_exists' => Storage::disk('public')->exists('event_images/' . $imageName)
+                ]);
+                
+                // Verificar que el archivo se guardó correctamente (múltiples verificaciones)
+                $fullPath = storage_path('app/public/event_images/' . $imageName);
+                $storageExists = Storage::disk('public')->exists('event_images/' . $imageName);
+                $fileExists = file_exists($fullPath);
+                
+                if (!$imagePath || (!$storageExists && !$fileExists)) {
+                    \Log::error('Error al guardar imagen de evento', [
+                        'event_id' => $id,
+                        'image_name' => $imageName,
+                        'image_path' => $imagePath,
+                        'full_path' => $fullPath,
+                        'storage_exists' => $storageExists,
+                        'file_exists' => $fileExists,
+                        'directory_writable' => is_writable(storage_path('app/public/event_images'))
+                    ]);
+                    return response()->json([
+                        'message' => 'Error al guardar la imagen',
+                        'error' => 'El archivo no se pudo guardar en el servidor',
+                        'debug' => [
+                            'image_path' => $imagePath,
+                            'storage_exists' => $storageExists,
+                            'file_exists' => $fileExists
+                        ]
+                    ], 500);
+                }
+                
+                $newImageUrl = Storage::disk('public')->url('event_images/' . $imageName);
+                
+                \Log::info('Imagen de evento actualizada exitosamente', [
+                    'event_id' => $id,
+                    'image_name' => $imageName,
+                    'image_url' => $newImageUrl
+                ]);
+                
+                // Asegurarse de que image_url se añade al array validated
+                $validated['image_url'] = $newImageUrl;
+                
+                \Log::info('image_url añadido a validated', [
+                    'event_id' => $id,
+                    'image_url' => $newImageUrl,
+                    'validated_keys' => array_keys($validated)
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Excepción al procesar imagen de evento', [
+                    'event_id' => $id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                return response()->json([
+                    'message' => 'Error al procesar la imagen',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
         }
 
+        // Log antes de actualizar
+        \Log::info('Antes de actualizar evento', [
+            'event_id' => $id,
+            'validated_keys' => array_keys($validated),
+            'image_url_en_validated' => isset($validated['image_url']) ? $validated['image_url'] : 'NO ESTÁ',
+            'current_image_url' => $event->image_url
+        ]);
+
         // Actualizar el evento con los datos validados
-        $event->update($validated);
+        $updated = $event->update($validated);
+        
+        \Log::info('Después de update', [
+            'event_id' => $id,
+            'updated' => $updated,
+            'image_url_after_update' => $event->image_url
+        ]);
         
         // Refrescar el modelo para obtener los datos actualizados
         $event->refresh();
         
+        \Log::info('Después de refresh', [
+            'event_id' => $id,
+            'image_url_after_refresh' => $event->image_url,
+            'newImageUrl' => $newImageUrl
+        ]);
+        
         // Verificar que la imagen se actualizó correctamente (por si acaso)
         if ($newImageUrl !== null && $event->image_url !== $newImageUrl) {
+            \Log::warning('image_url no coincide después de update, forzando actualización', [
+                'event_id' => $id,
+                'current' => $event->image_url,
+                'expected' => $newImageUrl
+            ]);
             $event->image_url = $newImageUrl;
             $event->save();
             $event->refresh();
