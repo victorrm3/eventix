@@ -100,7 +100,7 @@ class EventController extends Controller
         
         // Solo añadir regla de imagen si se está enviando un archivo (igual que UserController)
         if ($request->hasFile('image')) {
-            $rules['image'] = ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'];
+            $rules['image'] = ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'mimetypes:image/jpeg,image/png,image/jpg,image/gif,image/x-png', 'max:5120'];
         }
         
         // Validar todo de una vez (igual que UserController)
@@ -177,7 +177,8 @@ class EventController extends Controller
             return $this->respuestaNoAutorizada('Solo puedes editar eventos que creaste.');
         }
 
-        $validated = $request->validate([
+        // Preparar reglas de validación
+        $rules = [
             'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
             'date' => ['sometimes', 'date', 'date_format:Y-m-d'],
@@ -189,8 +190,14 @@ class EventController extends Controller
             'category' => ['sometimes', 'nullable', 'string', 'max:255'],
             'price' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'shareable' => ['sometimes', 'boolean'],
-            'image' => ['sometimes', 'nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'],
-        ]);
+        ];
+        
+        // Solo añadir regla de imagen si se está enviando un archivo
+        if ($request->hasFile('image')) {
+            $rules['image'] = ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'mimetypes:image/jpeg,image/png,image/jpg,image/gif,image/x-png', 'max:5120'];
+        }
+        
+        $validated = $request->validate($rules);
 
         if (isset($validated['time'])) {
             $validated['time'] = $this->normalizarTiempo($validated['time']);

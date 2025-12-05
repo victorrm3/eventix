@@ -31,7 +31,20 @@ export const peticionApi = async (endpoint: string, options: RequestInit = {}) =
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    let error;
+    try {
+      error = await response.json();
+    } catch (e) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    // Si hay errores de validación, mostrar el primer error
+    if (error.errors) {
+      const firstError = Object.values(error.errors)[0];
+      const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+      throw new Error(errorMessage || error.message || 'Error en la petición');
+    }
+    
     throw new Error(error.message || 'Error en la petición');
   }
 

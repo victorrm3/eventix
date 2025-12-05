@@ -76,6 +76,13 @@ const PanelAdministrador = () => {
         setCargandoEventos(true);
         const data = await peticionApi('/admin/events/active');
         
+        // Verificar que data.events existe y es un array
+        if (!data.events || !Array.isArray(data.events)) {
+          console.error('Formato de respuesta inválido:', data);
+          setEventos([]);
+          return;
+        }
+        
         const eventosFormateados = data.events.map((evento: any) => ({
           id: evento.id.toString(),
           titulo: evento.title,
@@ -90,10 +97,11 @@ const PanelAdministrador = () => {
         }));
         
         setEventos(eventosFormateados);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error al cargar eventos activos:', error);
-        // Si hay error, usar eventos falsos como fallback
-        setEventos(eventosFalsos);
+        console.error('Mensaje de error:', error.message);
+        // Si hay error, usar array vacío en lugar de eventos falsos
+        setEventos([]);
       } finally {
         setCargandoEventos(false);
       }
@@ -107,6 +115,13 @@ const PanelAdministrador = () => {
       try {
         const data = await peticionApi('/admin/events/active');
         
+        // Verificar que data.events existe y es un array
+        if (!data.events || !Array.isArray(data.events)) {
+          console.error('Formato de respuesta inválido:', data);
+          setEventos([]);
+          return;
+        }
+        
         const eventosFormateados = data.events.map((evento: any) => ({
           id: evento.id.toString(),
           titulo: evento.title,
@@ -121,8 +136,10 @@ const PanelAdministrador = () => {
         }));
         
         setEventos(eventosFormateados);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error al recargar eventos:', error);
+        console.error('Mensaje de error:', error.message);
+        setEventos([]);
       }
     };
 
