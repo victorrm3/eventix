@@ -215,10 +215,8 @@ const EditarEvento = () => {
           }))
         });
 
-        // Para FormData con archivos, algunos servidores requieren POST con _method=PUT
-        formDataToSend.append("_method", "PUT");
-
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://eventixs.es/api'}/events/${id}`, {
+        // Usar ruta POST específica para actualizar con imagen (evita problemas con PUT y FormData)
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://eventixs.es/api'}/events/${id}/update-with-image`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

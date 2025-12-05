@@ -385,6 +385,15 @@ class EventController extends Controller
     }
 
     /**
+     * Actualizar evento con imagen (ruta POST separada para evitar problemas con PUT y FormData)
+     */
+    public function updateWithImage(Request $request, $id)
+    {
+        // Esta es la misma lógica que update(), pero usando POST para evitar problemas con FormData
+        return $this->update($request, $id);
+    }
+
+    /**
      * Eliminar un evento (solo admins, solo eventos que crearon)
      */
     public function destroy($id)
