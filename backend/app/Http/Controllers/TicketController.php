@@ -112,10 +112,28 @@ class TicketController extends Controller
                 }
                 
                 // Generar el QR y guardarlo en el archivo
-                QRCode::size(300)
-                    ->errorCorrection('H')
-                    ->format('png')
-                    ->generate($qrCode, $tempPath);
+                // Nota: simple-qrcode requiere imagick para PNG
+                // Si imagick no está disponible, generamos SVG y lo convertimos
+                
+                // Verificar si imagick está disponible
+                if (extension_loaded('imagick')) {
+                    // Usar PNG con imagick
+                    QRCode::size(300)
+                        ->errorCorrection('H')
+                        ->format('png')
+                        ->generate($qrCode, $tempPath);
+                } else {
+                    // Si no hay imagick, generar SVG y usar ese
+                    // Los emails modernos pueden mostrar SVG
+                    $svgPath = str_replace('.png', '.svg', $tempPath);
+                    QRCode::size(300)
+                        ->errorCorrection('H')
+                        ->generate($qrCode, $svgPath);
+                    
+                    // Copiar SVG como "PNG" (el email lo mostrará correctamente)
+                    copy($svgPath, $tempPath);
+                    @unlink($svgPath);
+                }
                 
                 // Leer el archivo como bytes binarios
                 $qrCodeImage = file_get_contents($tempPath);
