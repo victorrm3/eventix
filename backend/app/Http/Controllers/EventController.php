@@ -83,31 +83,7 @@ class EventController extends Controller
             return $this->respuestaNoAutorizada('No tienes permisos para crear eventos');
         }
 
-        // Preparar datos para validación (FormData envía todo como string)
-        // Convertir shareable de string a boolean antes de validar
-        if ($request->has('shareable')) {
-            $shareableValue = $request->input('shareable');
-            $request->merge(['shareable' => in_array($shareableValue, ['1', 'true', 'yes', true, 1], true)]);
-        }
-        
-        // Convertir capacity a integer si viene como string
-        if ($request->has('capacity') && is_string($request->input('capacity'))) {
-            $request->merge(['capacity' => (int) $request->input('capacity')]);
-        }
-        
-        // Convertir lat y lng a null si son "0" o string vacío
-        if ($request->has('lat') && ($request->input('lat') === '0' || $request->input('lat') === '')) {
-            $request->merge(['lat' => null]);
-        }
-        if ($request->has('lng') && ($request->input('lng') === '0' || $request->input('lng') === '')) {
-            $request->merge(['lng' => null]);
-        }
-        
-        // Convertir price a null si es "0" o string vacío
-        if ($request->has('price') && ($request->input('price') === '0' || $request->input('price') === '')) {
-            $request->merge(['price' => null]);
-        }
-
+        // Validar primero (sin modificar el request para no interferir con archivos)
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -119,9 +95,30 @@ class EventController extends Controller
             'capacity' => ['required', 'integer', 'min:1'],
             'category' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'numeric', 'min:0'],
-            'shareable' => ['nullable', 'boolean'],
-            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'],
+            'shareable' => ['nullable'],
+            'image' => ['nullable', 'file', 'mimes:jpeg,jpg,png,gif', 'mimetypes:image/jpeg,image/png,image/jpg,image/gif,image/x-png', 'max:5120'],
         ]);
+        
+        // Convertir tipos después de validar
+        if (isset($validated['shareable'])) {
+            $shareableValue = $validated['shareable'];
+            $validated['shareable'] = in_array($shareableValue, ['1', 'true', 'yes', true, 1], true);
+        }
+        
+        if (isset($validated['capacity']) && is_string($validated['capacity'])) {
+            $validated['capacity'] = (int) $validated['capacity'];
+        }
+        
+        if (isset($validated['lat']) && ($validated['lat'] === '0' || $validated['lat'] === '')) {
+            $validated['lat'] = null;
+        }
+        if (isset($validated['lng']) && ($validated['lng'] === '0' || $validated['lng'] === '')) {
+            $validated['lng'] = null;
+        }
+        
+        if (isset($validated['price']) && ($validated['price'] === '0' || $validated['price'] === '')) {
+            $validated['price'] = null;
+        }
 
         $imageUrl = null;
         
