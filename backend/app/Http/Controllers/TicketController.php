@@ -177,30 +177,11 @@ class TicketController extends Controller
             // Cargar relaciones necesarias para los emails
             $ticket->load('user', 'sharedWith', 'event');
 
-            // Enviar email al comprador
-            try {
-                Mail::to($user->email)->send(new TicketPurchaseMail($ticket, $event, $qrCodeImage));
-                \Log::info('Email enviado exitosamente al comprador: ' . $user->email);
-            } catch (\Exception $e) {
-                \Log::error('Error enviando email al comprador: ' . $e->getMessage());
-                \Log::error('Rastro del error: ' . $e->getTraceAsString());
-            }
-
-            // Si es entrada compartida, enviar email al usuario compartido
-            if ($isShared && $sharedUser) {
-                try {
-                    Mail::to($sharedUser->email)->send(new TicketSharedMail($ticket, $event, $user, $qrCodeImage));
-                    \Log::info('Email enviado exitosamente al usuario compartido: ' . $sharedUser->email);
-                } catch (\Exception $e) {
-                    \Log::error('Error enviando email al usuario compartido: ' . $e->getMessage());
-                    \Log::error('Rastro del error: ' . $e->getTraceAsString());
-                }
-            }
-
             // Determinar tipo de entrada basándose en shared_with
             $ticketType = $ticket->shared_with ? 'compartida' : 'singular';
 
-            return response()->json([
+            // Preparar respuesta primero (antes de enviar emails para evitar timeout)
+            $responseData = [
                 'success' => true,
                 'message' => 'Compra procesada exitosamente',
                 'ticket' => [
@@ -214,7 +195,33 @@ class TicketController extends Controller
                     'shared_with_user_id' => $ticket->shared_with,
                     'created_at' => $ticket->created_at->toIso8601String(),
                 ]
-            ], 200);
+            ];
+
+            // Enviar emails en segundo plano (sin bloquear la respuesta) para evitar timeout
+            // Usar register_shutdown_function para ejecutar después de enviar la respuesta
+            register_shutdown_function(function () use ($user, $ticket, $event, $qrCodeImage, $isShared, $sharedUser) {
+                // Enviar email al comprador
+                try {
+                    Mail::to($user->email)->send(new TicketPurchaseMail($ticket, $event, $qrCodeImage));
+                    \Log::info('Email enviado exitosamente al comprador: ' . $user->email);
+                } catch (\Exception $e) {
+                    \Log::error('Error enviando email al comprador: ' . $e->getMessage());
+                    \Log::error('Rastro del error: ' . $e->getTraceAsString());
+                }
+
+                // Si es entrada compartida, enviar email al usuario compartido
+                if ($isShared && $sharedUser) {
+                    try {
+                        Mail::to($sharedUser->email)->send(new TicketSharedMail($ticket, $event, $user, $qrCodeImage));
+                        \Log::info('Email enviado exitosamente al usuario compartido: ' . $sharedUser->email);
+                    } catch (\Exception $e) {
+                        \Log::error('Error enviando email al usuario compartido: ' . $e->getMessage());
+                        \Log::error('Rastro del error: ' . $e->getTraceAsString());
+                    }
+                }
+            });
+
+            return response()->json($responseData, 200);
             
         } catch (\Exception $e) {
             \Log::error('Error en purchase: ' . $e->getMessage());
