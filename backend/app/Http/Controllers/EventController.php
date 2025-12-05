@@ -96,7 +96,7 @@ class EventController extends Controller
             'category' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'shareable' => ['nullable'],
-            'image' => ['nullable', 'file', 'mimes:jpeg,jpg,png,gif', 'mimetypes:image/jpeg,image/png,image/jpg,image/gif,image/x-png', 'max:5120'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'],
         ]);
         
         // Convertir tipos después de validar
