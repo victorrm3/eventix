@@ -52,6 +52,14 @@ class UserController extends Controller
      */
     public function actualizarImagenPerfil(Request $request)
     {
+        // Verificar si el archivo se está recibiendo
+        if (!$request->hasFile('profile_image')) {
+            return response()->json([
+                'message' => 'No se recibió ningún archivo',
+                'errors' => ['profile_image' => ['El campo profile_image es requerido y debe ser un archivo']]
+            ], 422);
+        }
+
         $request->validate([
             'profile_image' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ]);

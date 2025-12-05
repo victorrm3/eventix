@@ -7,15 +7,24 @@ export const getAuthToken = () => {
 export const peticionApi = async (endpoint: string, options: RequestInit = {}) => {
   const token = getAuthToken();
   
+  // Si el body es FormData, NO establecer Content-Type (el navegador lo hace automáticamente)
+  const isFormData = options.body instanceof FormData;
+  
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
     ...options.headers,
   };
-//Añadir autorización si hay
+  
+  // Solo establecer Content-Type si NO es FormData
+  if (!isFormData && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
+  // Añadir autorización si hay
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-//Enviar la petición a la API
+  
+  // Enviar la petición a la API
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,

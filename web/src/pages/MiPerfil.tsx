@@ -106,8 +106,9 @@ const MiPerfil = () => {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Error al actualizar la imagen");
+        const error = await response.json().catch(() => ({ message: "Error al actualizar la imagen" }));
+        const errorMessage = error.message || (error.errors ? JSON.stringify(error.errors) : "Error al actualizar la imagen");
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
