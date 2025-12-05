@@ -300,15 +300,17 @@ class EventController extends Controller
         $perPage = $request->get('per_page', 20);
 
         $query = Event::where('created_by', Auth::id())
-                     ->where('date', '>=', now()->toDateString());
+                     ->where('date', '>=', now()->toDateString())
+                     ->with('tickets');
 
         // Lógica de ordenar
         if ($sortBy === 'attendees') {
             $query->withCount('tickets as tickets_count')
                   ->orderBy('tickets_count', $order);
         } elseif ($sortBy === 'revenue') {
-            $query->withSum('tickets', 'price')
-                  ->orderBy('tickets_sum_price', $order);
+            // Para ordenar por revenue, necesitamos cargar los tickets y calcular
+            // Por ahora ordenamos por fecha y calculamos después
+            $query->orderBy('date', $order);
         } else {
             $query->orderBy('date', $order);
         }
@@ -316,8 +318,20 @@ class EventController extends Controller
         $events = $query->paginate($perPage);
 
         $events->getCollection()->transform(function ($event) {
-            $attendees = $event->tickets()->count();
-            $revenue = $event->tickets()->sum('price') ?? 0;
+            $tickets = $event->tickets;
+            $attendees = $tickets->count();
+            
+            // Calcular revenue: tickets singulares = event->price, compartidos = event->price * 1.66
+            $revenue = 0;
+            foreach ($tickets as $ticket) {
+                if ($ticket->shared_with !== null) {
+                    // Ticket compartido
+                    $revenue += $event->price * 1.66;
+                } else {
+                    // Ticket singular
+                    $revenue += $event->price;
+                }
+            }
             
             return [
                 'id' => $event->id,
