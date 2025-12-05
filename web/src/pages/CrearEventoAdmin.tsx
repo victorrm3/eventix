@@ -148,7 +148,9 @@ const CrearEventoAdmin = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Error al crear el evento");
+        const errorData = await response.json().catch(() => ({ message: "Error al crear el evento" }));
+        const errorMessage = errorData.message || errorData.errors ? JSON.stringify(errorData.errors || errorData) : "Error al crear el evento";
+        throw new Error(errorMessage);
       }
 
       toast.success("Evento creado correctamente");
