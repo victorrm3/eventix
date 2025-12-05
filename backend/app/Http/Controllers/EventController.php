@@ -83,8 +83,8 @@ class EventController extends Controller
             return $this->respuestaNoAutorizada('No tienes permisos para crear eventos');
         }
 
-        // Validar primero (sin modificar el request para no interferir con archivos)
-        $validated = $request->validate([
+        // Preparar reglas de validación (igual que UserController - verificar archivo primero)
+        $rules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'date' => ['required', 'date', 'date_format:Y-m-d'],
@@ -96,8 +96,15 @@ class EventController extends Controller
             'category' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'shareable' => ['nullable'],
-            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'],
-        ]);
+        ];
+        
+        // Solo añadir regla de imagen si se está enviando un archivo (igual que UserController)
+        if ($request->hasFile('image')) {
+            $rules['image'] = ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'];
+        }
+        
+        // Validar todo de una vez (igual que UserController)
+        $validated = $request->validate($rules);
         
         // Convertir tipos después de validar
         if (isset($validated['shareable'])) {
