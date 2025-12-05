@@ -197,7 +197,7 @@ const EditarEvento = () => {
         });
         formDataToSend.append("image", formData.image);
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/api'}/events/${id}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://eventixs.es/api'}/events/${id}`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

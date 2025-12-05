@@ -95,8 +95,18 @@ class EventController extends Controller
             'category' => ['nullable', 'string', 'max:255'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'shareable' => ['nullable', 'boolean'],
-            'image_url' => ['nullable', 'string', 'max:500'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'],
         ]);
+
+        $imageUrl = null;
+        
+        // Procesar imagen si se envió
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '_' . Auth::id() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $imagePath = $image->storeAs('event_images', $imageName, 'public');
+            $imageUrl = Storage::disk('public')->url('event_images/' . $imageName);
+        }
 
         $event = Event::create([
             'title' => $validated['title'],
@@ -110,7 +120,7 @@ class EventController extends Controller
             'category' => $validated['category'] ?? null,
             'price' => $validated['price'] ?? 0,
             'shareable' => $validated['shareable'] ?? false,
-            'image_url' => $validated['image_url'] ?? null,
+            'image_url' => $imageUrl,
             'created_by' => Auth::id(),
         ]);
 
@@ -150,11 +160,29 @@ class EventController extends Controller
             'category' => ['sometimes', 'nullable', 'string', 'max:255'],
             'price' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'shareable' => ['sometimes', 'boolean'],
-            'image_url' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'image' => ['sometimes', 'nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'],
         ]);
 
         if (isset($validated['time'])) {
             $validated['time'] = $this->normalizarTiempo($validated['time']);
+        }
+
+        // Procesar imagen si se envió una nueva
+        if ($request->hasFile('image')) {
+            // Eliminar imagen anterior si existe
+            if ($event->image_url) {
+                // Extraer el nombre del archivo de la URL
+                $oldImagePath = str_replace(Storage::disk('public')->url(''), '', $event->image_url);
+                if ($oldImagePath) {
+                    Storage::disk('public')->delete($oldImagePath);
+                }
+            }
+
+            // Guardar nueva imagen
+            $image = $request->file('image');
+            $imageName = time() . '_' . Auth::id() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $imagePath = $image->storeAs('event_images', $imageName, 'public');
+            $validated['image_url'] = Storage::disk('public')->url('event_images/' . $imageName);
         }
 
         $event->update($validated);
@@ -190,6 +218,14 @@ class EventController extends Controller
         
         try {
             $ticketCount = Ticket::where('event_id', $id)->count();
+            
+            // Eliminar imagen del evento si existe
+            if ($event->image_url) {
+                $oldImagePath = str_replace(Storage::disk('public')->url(''), '', $event->image_url);
+                if ($oldImagePath) {
+                    Storage::disk('public')->delete($oldImagePath);
+                }
+            }
             
             // Eliminar todos los tickets del evento
             Ticket::where('event_id', $id)->delete();

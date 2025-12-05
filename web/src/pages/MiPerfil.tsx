@@ -97,7 +97,7 @@ const MiPerfil = () => {
     formData.append("profile_image", imagenPerfil);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/api'}/user/profile-image`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://eventixs.es/api'}/user/profile-image`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

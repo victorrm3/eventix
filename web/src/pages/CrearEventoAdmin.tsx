@@ -139,7 +139,7 @@ const CrearEventoAdmin = () => {
         formDataToSend.append("image", formData.image);
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost/api'}/events`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://eventixs.es/api'}/events`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

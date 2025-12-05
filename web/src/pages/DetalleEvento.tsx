@@ -231,7 +231,7 @@ const DetalleEvento = () => {
             <div className="p-6 text-center bg-white rounded-lg border shadow-sm">
               <h3 className="font-semibold mb-4">Código QR del Evento</h3>
               <div className="flex justify-center mb-4">
-                <QRCodeSVG value={`https://eventix.com/event/${evento.id}`} size={120} />
+                <QRCodeSVG value={`https://eventixs.es/event/${evento.id}`} size={120} />
               </div>
               <p className="text-sm text-gray-600">
                 Escanea para compartir este evento
