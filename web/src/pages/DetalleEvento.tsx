@@ -211,6 +211,12 @@ const DetalleEvento = () => {
                 <button className="w-full border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-md font-medium transition-colors">
                   Añadir a Favoritos
                 </button>
+                <button 
+                  onClick={() => navigate(`/resenas/${id}`)}
+                  className="w-full border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-md font-medium transition-colors"
+                >
+                  Ver Reseñas
+                </button>
               </div>
 
               <div className="mt-6 pt-6 border-t">

@@ -193,6 +193,19 @@ const MiPerfil = () => {
     }
   };
 
+  const handleValidarEntrada = async (entradaId: number) => {
+    try {
+      await peticionApi(`/tickets/${entradaId}/validate`, {
+        method: "PUT",
+      });
+
+      toast.success("Entrada validada correctamente");
+      cargarEntradas();
+    } catch (error: any) {
+      toast.error(error.message || "Error al validar la entrada");
+    }
+  };
+
   const handleImagenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -478,7 +491,7 @@ const MiPerfil = () => {
 
                 {misEntradas.length === 0 ? (
                   <p className="text-gray-500 text-center py-8">
-                    No tienes entradas compradas
+                    Cargando entradas, porfavor espere...
                   </p>
                 ) : (
                   <div className="grid gap-4">
@@ -499,9 +512,26 @@ const MiPerfil = () => {
                           </div>
                           <div className="text-right">
                             <p className="font-bold text-blue-600">${entrada.price}</p>
-                            <button className="text-sm text-blue-600 hover:underline mt-2">
-                              Ver QR
-                            </button>
+                            <div className="flex flex-col gap-2 mt-2">
+                              <button className="text-sm text-blue-600 hover:underline">
+                                Ver QR
+                              </button>
+                              <button 
+                                onClick={() => handleValidarEntrada(entrada.id)}
+                                disabled={entrada.status === 'validated' || entrada.status === 'transferred'}
+                                className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {entrada.status === 'validated' ? 'Validada' : entrada.status === 'transferred' ? 'Transferida' : 'Validar entrada'}
+                              </button>
+                              {entrada.status === 'validated' && (
+                                <button 
+                                  onClick={() => navigate(`/escribir-resena/${entrada.event_id}`)}
+                                  className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-yellow-600 transition-colors"
+                                >
+                                  Escribir reseña
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>

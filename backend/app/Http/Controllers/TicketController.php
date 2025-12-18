@@ -235,5 +235,66 @@ class TicketController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Validar una entrada (cambiar status de reserved a validated)
+     */
+    public function validate(Request $request, $id)
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No autorizado. Debes estar autenticado.'
+                ], 401);
+            }
+
+            $ticket = Ticket::find($id);
+            
+            if (!$ticket) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Entrada no encontrada'
+                ], 404);
+            }
+
+            // Verificar que el ticket pertenece al usuario autenticado
+            if ($ticket->user_id !== $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No tienes permiso para validar esta entrada'
+                ], 403);
+            }
+
+            // Verificar que el ticket está en estado 'reserved'
+            if ($ticket->status !== 'reserved') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta entrada ya ha sido validada o transferida'
+                ], 400);
+            }
+
+            // Cambiar el status a 'validated'
+            $ticket->status = 'validated';
+            $ticket->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Entrada validada correctamente',
+                'ticket' => [
+                    'id' => $ticket->id,
+                    'status' => $ticket->status,
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Error validando ticket: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al validar la entrada: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 

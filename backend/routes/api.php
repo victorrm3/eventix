@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\ReviewController;
 
 Route::get('/health', function () {
     return response()->json(['status' => 'ok']);
@@ -16,6 +17,7 @@ Route::post('/login', [AuthController::class, 'login']);
 // Eventos
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{id}', [EventController::class, 'show']);
+Route::get('/events/{id}/reviews', [ReviewController::class, 'index']);
 
 // Responder CORS de cualquier ruta API
 Route::options('/{any}', function () {
@@ -37,6 +39,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Entradas
     Route::get('/user/tickets', [UserController::class, 'obtenerEntradas']);
     Route::post('/tickets/purchase', [TicketController::class, 'purchase']);
+    Route::put('/tickets/{id}/validate', [TicketController::class, 'validate']);
+
+    // Reseñas
+    Route::post('/events/{id}/reviews', [ReviewController::class, 'store']);
     
     // Eventos (solo admins)
     Route::post('/events', [EventController::class, 'store']);

@@ -1,4 +1,4 @@
-const API_URL = 'https://eventixs.es/api';
+const API_URL = 'http://localhost/api';
 
 export const getAuthToken = () => {
   return localStorage.getItem('token');

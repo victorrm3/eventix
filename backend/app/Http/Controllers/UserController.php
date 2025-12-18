@@ -232,6 +232,7 @@ class UserController extends Controller
             ->map(function ($ticket) {
                 return [
                     'id' => $ticket->id,
+                    'event_id' => $ticket->event_id,
                     'event_title' => $ticket->event->title ?? null,
                     'event_date' => $ticket->event->date ?? null,
                     'event_location' => $ticket->event->location ?? null,
