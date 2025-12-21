@@ -36,10 +36,28 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/friends', [UserController::class, 'agregarAmigo']);
     Route::delete('/user/friends/{id}', [UserController::class, 'eliminarAmigo']);
     
+    // Solicitudes de amistad
+    Route::get('/user/search', [UserController::class, 'buscarUsuarios']);
+    Route::post('/user/friend-requests', [UserController::class, 'enviarSolicitud']);
+    Route::get('/user/friend-requests', [UserController::class, 'obtenerSolicitudes']);
+    Route::get('/user/friend-requests/count', [UserController::class, 'obtenerContadorSolicitudes']);
+    Route::put('/user/friend-requests/{id}/accept', [UserController::class, 'aceptarSolicitud']);
+    Route::put('/user/friend-requests/{id}/reject', [UserController::class, 'rechazarSolicitud']);
+    
     // Entradas
     Route::get('/user/tickets', [UserController::class, 'obtenerEntradas']);
     Route::post('/tickets/purchase', [TicketController::class, 'purchase']);
     Route::put('/tickets/{id}/validate', [TicketController::class, 'validate']);
+
+    // Favoritos
+    Route::get('/user/favorites', [UserController::class, 'obtenerFavoritos']);
+    Route::post('/user/favorites', [UserController::class, 'agregarFavorito']);
+    Route::delete('/user/favorites/{eventId}', [UserController::class, 'eliminarFavorito']);
+    Route::get('/user/favorites/{eventId}/check', [UserController::class, 'verificarFavorito']);
+    Route::get('/user/{userId}/favorites', [UserController::class, 'obtenerFavoritosUsuario']);
+    
+    // Logros
+    Route::get('/user/achievements', [UserController::class, 'obtenerLogros']);
 
     // Reseñas
     Route::post('/events/{id}/reviews', [ReviewController::class, 'store']);

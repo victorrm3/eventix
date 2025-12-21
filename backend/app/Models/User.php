@@ -56,7 +56,8 @@ class User extends Authenticatable
     public function friends()
     {
         return $this->belongsToMany(User::class, 'friends', 'user_id', 'friend_id')
-            ->withTimestamps();
+            ->withPivot('created_at')
+            ->withTimestamps(false);
     }
 
     /**
@@ -65,5 +66,29 @@ class User extends Authenticatable
     public function tickets()
     {
         return $this->hasMany(\App\Models\Ticket::class);
+    }
+
+    /**
+     * Solicitudes de amistad enviadas
+     */
+    public function sentFriendRequests()
+    {
+        return $this->hasMany(\App\Models\FriendRequest::class, 'sender_id');
+    }
+
+    /**
+     * Solicitudes de amistad recibidas
+     */
+    public function receivedFriendRequests()
+    {
+        return $this->hasMany(\App\Models\FriendRequest::class, 'receiver_id');
+    }
+
+    /**
+     * Logros del usuario
+     */
+    public function achievements()
+    {
+        return $this->hasMany(\App\Models\Achievement::class);
     }
 }

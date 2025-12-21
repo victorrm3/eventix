@@ -6,8 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Friend extends Model
-//No implementado aún
+class Favorite extends Model
 {
     use HasFactory;
 
@@ -16,11 +15,11 @@ class Friend extends Model
 
     protected $fillable = [
         'user_id',
-        'friend_id',
+        'event_id',
     ];
 
     /**
-     * Usuario que tiene el amigo
+     * Usuario que tiene el favorito
      */
     public function user(): BelongsTo
     {
@@ -28,10 +27,11 @@ class Friend extends Model
     }
 
     /**
-     * El amigo (otro usuario)
+     * Evento favorito
      */
-    public function friend(): BelongsTo
+    public function event(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'friend_id');
+        return $this->belongsTo(Event::class, 'event_id');
     }
 }
+

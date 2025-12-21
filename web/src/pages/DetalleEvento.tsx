@@ -8,6 +8,8 @@ import { Evento } from "@/data/eventosFalsos";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Fix para los iconos de Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -20,8 +22,11 @@ L.Icon.Default.mergeOptions({
 const DetalleEvento = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [evento, setEvento] = useState<Evento | null>(null);
   const [cargando, setCargando] = useState(true);
+  const [esFavorito, setEsFavorito] = useState(false);
+  const [cargandoFavorito, setCargandoFavorito] = useState(false);
 
   useEffect(() => {
     const cargarEvento = async () => {
@@ -62,8 +67,50 @@ const DetalleEvento = () => {
 
     if (id) {
       cargarEvento();
+      if (user) {
+        verificarFavorito();
+      }
     }
-  }, [id]);
+  }, [id, user]);
+
+  const verificarFavorito = async () => {
+    if (!id || !user) return;
+    try {
+      const data = await peticionApi(`/user/favorites/${id}/check`);
+      setEsFavorito(data.is_favorite);
+    } catch (error) {
+      console.error("Error al verificar favorito:", error);
+    }
+  };
+
+  const handleToggleFavorito = async () => {
+    if (!id || !user) {
+      toast.error("Debes iniciar sesión para agregar favoritos");
+      return;
+    }
+
+    setCargandoFavorito(true);
+    try {
+      if (esFavorito) {
+        await peticionApi(`/user/favorites/${id}`, {
+          method: "DELETE",
+        });
+        setEsFavorito(false);
+        toast.success("Evento eliminado de favoritos");
+      } else {
+        await peticionApi("/user/favorites", {
+          method: "POST",
+          body: JSON.stringify({ event_id: parseInt(id) }),
+        });
+        setEsFavorito(true);
+        toast.success("Evento agregado a favoritos");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Error al actualizar favoritos");
+    } finally {
+      setCargandoFavorito(false);
+    }
+  };
 
   if (cargando) {
     return (
@@ -109,8 +156,14 @@ const DetalleEvento = () => {
             <button className="p-2 bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 rounded-md transition-colors">
               <Share2 className="w-4 h-4" />
             </button>
-            <button className="p-2 bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 rounded-md transition-colors">
-              <Heart className="w-4 h-4" />
+            <button 
+              onClick={handleToggleFavorito}
+              disabled={cargandoFavorito || !user}
+              className={`p-2 backdrop-blur-sm text-white hover:bg-white/30 rounded-md transition-colors ${
+                esFavorito ? 'bg-red-500/80' : 'bg-white/20'
+              }`}
+            >
+              <Heart className={`w-4 h-4 ${esFavorito ? 'fill-current' : ''}`} />
             </button>
           </div>
         </div>
@@ -208,8 +261,17 @@ const DetalleEvento = () => {
                 >
                   Comprar Entradas
                 </button>
-                <button className="w-full border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-md font-medium transition-colors">
-                  Añadir a Favoritos
+                <button 
+                  onClick={handleToggleFavorito}
+                  disabled={cargandoFavorito || !user}
+                  className={`w-full border px-4 py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2 ${
+                    esFavorito 
+                      ? 'bg-red-50 border-red-300 text-red-600 hover:bg-red-100' 
+                      : 'border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 ${esFavorito ? 'fill-current' : ''}`} />
+                  {esFavorito ? 'Quitar de Favoritos' : 'Añadir a Favoritos'}
                 </button>
                 <button 
                   onClick={() => navigate(`/resenas/${id}`)}

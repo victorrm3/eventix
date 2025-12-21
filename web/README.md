@@ -1,73 +1,86 @@
-# Welcome to your Lovable project
 
-## Project info
+Proyecto front-end (Vite + React + TypeScript)
+=============================================
 
-**URL**: https://lovable.dev/projects/66bd08ed-869b-4e69-9b04-3b7402d20ee5
+Descripción
+-----------
+Front construido con Vite, React y TypeScript. Proporciona la interfaz de usuario para la aplicación, consume la API del backend (Laravel) y contiene rutas, componentes y estilos con Tailwind.
 
-## How can I edit this code?
+Requisitos
+---------
+- Node.js v18+ y npm o pnpm
+- Acceso al backend (por defecto en http://localhost:8000)
 
-There are several ways of editing your application.
+Instalación
+-----------
+1. Instalar dependencias:
 
-**Use Lovable**
+```bash
+npm install
+```
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/66bd08ed-869b-4e69-9b04-3b7402d20ee5) and start prompting.
+2. Variables de entorno
 
-Changes made via Lovable will be committed automatically to this repo.
+Crea un archivo `.env` en la carpeta `web` si necesitas configurar variables de Vite. Ejemplo mínimo:
 
-**Use your preferred IDE**
+```
+VITE_API_URL=http://localhost:8000
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Comandos útiles
+---------------
+- Ejecutar en desarrollo (hot-reload):
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+- Construir para producción:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run build
+```
 
-**Use GitHub Codespaces**
+- Construcción en modo desarrollo:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run build:dev
+```
 
-## What technologies are used for this project?
+- Previsualizar build localmente:
 
-This project is built with:
+```bash
+npm run preview
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- Ejecutar linter:
 
-## How can I deploy this project?
+```bash
+npm run lint
+```
 
-Simply open [Lovable](https://lovable.dev/projects/66bd08ed-869b-4e69-9b04-3b7402d20ee5) and click on Share -> Publish.
+Conexión con el backend
+-----------------------
+Por defecto la app espera la API en la variable `VITE_API_URL` (ej. `http://localhost:8000`). Las llamadas a la API suelen apuntar a `VITE_API_URL + '/api'`. Ajusta la variable en tu `.env` si tu backend corre en otra URL o puerto.
 
-## Can I connect a custom domain to my Lovable project?
+Estructura rápida del proyecto
+-----------------------------
+- `src/` - código fuente React (componentes, páginas, hooks, etc.)
+- `src/assets` - imágenes y recursos estáticos
+- `public/` - archivos públicos servidos por Vite
+- `index.html` - punto de entrada
 
-Yes, you can!
+Notas y troubleshooting
+-----------------------
+- Si ves problemas con CORS, habilita CORS en el backend (Laravel `config/cors.php`).
+- Si cambias `VITE_API_URL`, reinicia el servidor de desarrollo.
+- Para problemas con dependencias, borra `node_modules` y `package-lock.json` y vuelve a ejecutar `npm install`.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Contribuir
+----------
+Si vas a contribuir, crea una rama con un nombre descriptivo, añade commits claros y abre un PR. Mantén el código en `src/` organizado por páginas y componentes.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Licencia
+-------
+Revisa la licencia del proyecto raíz. Este README es una guía rápida para desarrollo local.
+

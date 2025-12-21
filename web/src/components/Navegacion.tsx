@@ -1,10 +1,31 @@
-import { User, Plus, LogOut } from "lucide-react";
+import { User, Plus, LogOut, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { peticionApi } from "@/lib/api";
 import logoEventix from "@/assets/logo-eventix.png";
 
 const Navegacion = () => {
   const { user, logout } = useAuth();
+  const [notificacionesCount, setNotificacionesCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      cargarNotificaciones();
+      // Actualizar cada 30 segundos
+      const interval = setInterval(cargarNotificaciones, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  const cargarNotificaciones = async () => {
+    try {
+      const data = await peticionApi("/user/friend-requests/count");
+      setNotificacionesCount(data.count || 0);
+    } catch (error) {
+      console.error("Error al cargar notificaciones:", error);
+    }
+  };
 
   return (
     <nav className="bg-white/95 backdrop-blur-md border-b sticky top-0 z-50">
@@ -28,9 +49,20 @@ const Navegacion = () => {
               Sobre Nosotros
             </Link>
             {user && (
-              <Link to="/mi-perfil" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Mi Perfil
-              </Link>
+              <>
+                <Link to="/mi-perfil" className="text-gray-600 hover:text-gray-900 transition-colors relative inline-block">
+                  Mi Perfil
+                  {notificacionesCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {notificacionesCount > 9 ? '9+' : notificacionesCount}
+                    </span>
+                  )}
+                </Link>
+                <Link to="/logros" className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1">
+                  <Trophy className="w-4 h-4" />
+                  Logros
+                </Link>
+              </>
             )}
             {user?.role === "user" && (
               <Link to="/crear-evento" className="text-gray-600 hover:text-gray-900 transition-colors">

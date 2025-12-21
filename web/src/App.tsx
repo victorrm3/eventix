@@ -16,6 +16,7 @@ import MiPerfil from "./pages/MiPerfil";
 import ComprarEntradas from "./pages/ComprarEntradas";
 import EscribirResena from "./pages/EscribirResena";
 import ResenasEvento from "./pages/ResenasEvento";
+import Logros from "./pages/Logros";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/comprar-entradas/:id" element={<ComprarEntradas />} />
           <Route path="/escribir-resena/:eventId" element={<EscribirResena />} />
           <Route path="/resenas/:eventId" element={<ResenasEvento />} />
+          <Route path="/logros" element={<Logros />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
