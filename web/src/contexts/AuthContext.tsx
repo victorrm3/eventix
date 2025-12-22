@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_URL = 'http://localhost/api';
+  const API_URL = 'https://eventixs.es/api';
 
   useEffect(() => {
     // Verificar si hay un usuario guardado en localStorage
