@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\GroupController;
 
 Route::get('/health', function () {
     return response()->json(['status' => 'ok']);
@@ -61,6 +62,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Reseñas
     Route::post('/events/{id}/reviews', [ReviewController::class, 'store']);
+    
+    // Grupos de eventos
+    Route::get('/events/{eventId}/groups', [GroupController::class, 'index']);
+    Route::post('/groups', [GroupController::class, 'store']);
+    Route::get('/groups/{groupId}', [GroupController::class, 'show']);
+    Route::post('/groups/{groupId}/join', [GroupController::class, 'join']);
+    Route::post('/groups/join-by-invite', [GroupController::class, 'joinByInvite']);
+    Route::delete('/groups/{groupId}/leave', [GroupController::class, 'leave']);
+    Route::get('/user/groups', [GroupController::class, 'myGroups']);
     
     // Eventos (solo admins)
     Route::post('/events', [EventController::class, 'store']);

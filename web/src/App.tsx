@@ -17,6 +17,9 @@ import ComprarEntradas from "./pages/ComprarEntradas";
 import EscribirResena from "./pages/EscribirResena";
 import ResenasEvento from "./pages/ResenasEvento";
 import Logros from "./pages/Logros";
+import GruposEvento from "./pages/GruposEvento";
+import MiembrosGrupo from "./pages/MiembrosGrupo";
+import TusGrupos from "./pages/TusGrupos";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +42,9 @@ const App = () => (
           <Route path="/escribir-resena/:eventId" element={<EscribirResena />} />
           <Route path="/resenas/:eventId" element={<ResenasEvento />} />
           <Route path="/logros" element={<Logros />} />
+          <Route path="/grupos/:eventId" element={<GruposEvento />} />
+          <Route path="/miembros-grupo/:groupId" element={<MiembrosGrupo />} />
+          <Route path="/tus-grupos" element={<TusGrupos />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

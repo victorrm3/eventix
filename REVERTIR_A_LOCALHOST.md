@@ -60,6 +60,68 @@ Este archivo contiene las instrucciones para aplicar los cambios necesarios cuan
    ./vendor/bin/sail php artisan config:clear
    ```
 
+6. Aplicar migraciones nuevas en producción (desde que se creó el proyecto inicial):
+
+   Ejecutar en el servidor de producción (dentro del contenedor de Laravel si usas Sail/Docker):
+
+   ```bash
+   # Solo migraciones pendientes
+   php artisan migrate
+
+   # O, si quieres forzar una migración concreta:
+   php artisan migrate --path=database/migrations/2025_12_01_000000_create_friend_requests_table.php
+   php artisan migrate --path=database/migrations/2025_12_21_000000_add_invite_code_to_event_groups_table.php
+   ```
+
+   Migraciones nuevas relevantes:
+
+   - `2025_12_01_000000_create_friend_requests_table.php`
+     - Crea la tabla `friend_requests` para el sistema de solicitudes de amistad.
+     - Columnas principales:
+       - `sender_id` (FK a `users.id`)
+       - `receiver_id` (FK a `users.id`)
+       - `status` (`pending`, `accepted`, `rejected`)
+   - `2025_12_21_000000_add_invite_code_to_event_groups_table.php`
+     - Añade la columna `invite_code` a `event_groups` para gestionar enlaces de invitación a grupos privados.
+
+   Asegúrate de que en producción se han ejecutado TODAS las migraciones del proyecto y, en especial, estas dos si vienes de una versión anterior sin amigos/grupos.
+
+7. Verificar rutas API nuevas utilizadas por el frontend
+
+   No es necesario tocar archivos de configuración para las rutas, pero de cara al despliegue conviene conocer los nuevos endpoints que deben funcionar en producción:
+
+   - **Sistema de amistad**
+     - `GET  /api/user/search`
+     - `POST /api/user/friend-requests`
+     - `GET  /api/user/friend-requests`
+     - `GET  /api/user/friend-requests/count`
+     - `PUT  /api/user/friend-requests/{id}/accept`
+     - `PUT  /api/user/friend-requests/{id}/reject`
+     - `GET  /api/user/friends`
+     - `POST /api/user/friends`
+     - `DELETE /api/user/friends/{id}`
+
+   - **Favoritos de eventos**
+     - `GET  /api/user/favorites`
+     - `POST /api/user/favorites`
+     - `DELETE /api/user/favorites/{eventId}`
+     - `GET  /api/user/favorites/{eventId}/check`
+     - `GET  /api/user/{userId}/favorites`
+
+   - **Logros**
+     - `GET  /api/user/achievements`
+
+   - **Grupos de eventos**
+     - `GET    /api/events/{eventId}/groups`   (listar grupos públicos de un evento)
+     - `POST   /api/groups`                    (crear grupo)
+     - `GET    /api/groups/{groupId}`          (detalles + miembros)
+     - `POST   /api/groups/{groupId}/join`     (unirse a grupo público)
+     - `POST   /api/groups/join-by-invite`     (unirse a grupo privado por código)
+     - `DELETE /api/groups/{groupId}/leave`    (salir de un grupo)
+     - `GET    /api/user/groups`              (grupos a los que pertenece el usuario)
+
+   Si el código desplegado en producción incluye estos controladores y rutas (commit actualizado), no hace falta configuración extra: basta con que el servidor web (Nginx/Apache) esté apuntando a `public/index.php` como hasta ahora.
+
 ## Notas
 
 - Si en algún momento quieres volver a trabajar en local, invierte estos cambios (poner de nuevo `http://localhost/api`, quitar dominios de producción en CORS y Sanctum).

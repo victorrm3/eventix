@@ -1,9 +1,10 @@
-import { User, Plus, LogOut, Trophy } from "lucide-react";
+import { User, Plus, LogOut, Trophy, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { peticionApi } from "@/lib/api";
 import logoEventix from "@/assets/logo-eventix.png";
+
 
 const Navegacion = () => {
   const { user, logout } = useAuth();
@@ -61,6 +62,10 @@ const Navegacion = () => {
                 <Link to="/logros" className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1">
                   <Trophy className="w-4 h-4" />
                   Logros
+                  </Link>
+                <Link to="/tus-grupos" className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  Tus Grupos
                 </Link>
               </>
             )}

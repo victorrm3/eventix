@@ -53,4 +53,12 @@ class Event extends Model
     {
         return $this->hasMany(Ticket::class);
     }
+
+    /**
+     * Grupos del evento
+     */
+    public function groups(): HasMany
+    {
+        return $this->hasMany(\App\Models\EventGroup::class);
+    }
 }

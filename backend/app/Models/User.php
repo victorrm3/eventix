@@ -91,4 +91,22 @@ class User extends Authenticatable
     {
         return $this->hasMany(\App\Models\Achievement::class);
     }
+
+    /**
+     * Grupos creados por el usuario
+     */
+    public function ownedGroups()
+    {
+        return $this->hasMany(\App\Models\EventGroup::class, 'owner_id');
+    }
+
+    /**
+     * Grupos a los que pertenece el usuario
+     */
+    public function groups()
+    {
+        return $this->belongsToMany(\App\Models\EventGroup::class, 'group_members', 'user_id', 'group_id')
+            ->withPivot('created_at')
+            ->withTimestamps(false);
+    }
 }
