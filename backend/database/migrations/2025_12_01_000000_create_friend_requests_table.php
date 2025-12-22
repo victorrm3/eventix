@@ -12,11 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::dropIfExists('friend_requests');
-        
+
         Schema::create('friend_requests', function (Blueprint $table) {
             $table->id();
-            $table->integer('sender_id');
-            $table->integer('receiver_id');
+
+            // IMPORTANTANTE (producción): usar el mismo tipo que la columna users.id
+            // En la mayoría de instalaciones Laravel por defecto es BIGINT UNSIGNED,
+            // por eso aquí usamos unsignedBigInteger.
+            $table->unsignedBigInteger('sender_id');
+            $table->unsignedBigInteger('receiver_id');
             $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
             $table->timestamps();
             
