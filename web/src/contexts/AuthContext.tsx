@@ -34,10 +34,12 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Provider que maneja el estado de autenticación y expone helpers (login, register, logout...).
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Base URL de la API; centralizar aquí facilita cambios en distintos entornos.
   const API_URL = 'https://eventixs.es/api';
 
   useEffect(() => {
@@ -46,11 +48,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const token = localStorage.getItem('token');
     
     if (storedUser && token) {
+      // Asumimos que los datos guardados son válidos y los restauramos en memoria
       setUser(JSON.parse(storedUser));
     }
     setIsLoading(false);
   }, []);
 
+  // Enviar credenciales al backend y almacenar token + usuario en localStorage
   const login = async (email: string, password: string) => {
     try {
       const response = await fetch(`${API_URL}/login`, {
@@ -78,6 +82,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Registro de nuevo usuario: similar a login, guarda token y usuario recibido
   const register = async (name: string, email: string, password: string) => {
     try {
       const response = await fetch(`${API_URL}/register`, {
@@ -105,12 +110,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Cerrar sesión: limpiar almacenamiento local y estado en memoria
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
   };
 
+  // Actualizar campos del usuario en memoria y persistir en localStorage
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData };

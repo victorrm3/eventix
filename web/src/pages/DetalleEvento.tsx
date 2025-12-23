@@ -25,15 +25,19 @@ const DetalleEvento = () => {
   const { user } = useAuth();
   const [evento, setEvento] = useState<Evento | null>(null);
   const [cargando, setCargando] = useState(true);
+  // `esFavorito` indica si el evento está marcado en la cuenta del usuario
   const [esFavorito, setEsFavorito] = useState(false);
   const [cargandoFavorito, setCargandoFavorito] = useState(false);
 
+  // Al montar / cambiar `id` intentamos cargar el evento desde la API.
+  // Si hay usuario logueado, además verificamos si el evento está en sus favoritos.
   useEffect(() => {
     const cargarEvento = async () => {
       try {
         setCargando(true);
         const data = await peticionApi(`/events/${id}`);
-        
+
+        // Mapear la respuesta del backend a la interfaz `Evento`
         const eventoFormateado = {
           id: data.event.id.toString(),
           titulo: data.event.title,
@@ -48,12 +52,15 @@ const DetalleEvento = () => {
           lat: data.event.lat,
           lng: data.event.lng,
           categoria: data.event.category,
-          creator: data.event.creator ? {
-            id: data.event.creator.id,
-            name: data.event.creator.name,
-            email: data.event.creator.email,
-            profile_image: data.event.creator.profile_image,
-          } : undefined,
+          // Si el backend devuelve info del creador, aquí
+          creator: data.event.creator
+            ? {
+                id: data.event.creator.id,
+                name: data.event.creator.name,
+                email: data.event.creator.email,
+                profile_image: data.event.creator.profile_image,
+              }
+            : undefined,
         };
         
         setEvento(eventoFormateado);
@@ -68,11 +75,13 @@ const DetalleEvento = () => {
     if (id) {
       cargarEvento();
       if (user) {
+        // Si hay usuario, comprobamos también si este evento está en favoritos
         verificarFavorito();
       }
     }
   }, [id, user]);
 
+  // Verifica en el backend si el evento está marcado como favorito por el usuario
   const verificarFavorito = async () => {
     if (!id || !user) return;
     try {
@@ -83,6 +92,8 @@ const DetalleEvento = () => {
     }
   };
 
+  // Alterna el estado de favorito: POST para agregar, DELETE para eliminar.
+  // Requiere que el usuario esté autenticado; muestra toasts en caso de error/éxito.
   const handleToggleFavorito = async () => {
     if (!id || !user) {
       toast.error("Debes iniciar sesión para agregar favoritos");

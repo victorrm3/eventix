@@ -16,11 +16,13 @@ const ComprarEntradas = () => {
   const [procesando, setProcesando] = useState(false);
 
   useEffect(() => {
+    // Carga los datos del evento desde el backend y mapea la respuesta
     const cargarEvento = async () => {
       try {
         setCargando(true);
         const data = await peticionApi(`/events/${id}`);
-        
+
+        // Mapear la estructura recibida a la interfaz `Evento`
         const eventoFormateado = {
           id: data.event.id.toString(),
           titulo: data.event.title,
@@ -54,7 +56,7 @@ const ComprarEntradas = () => {
       toast.error('Selecciona un tipo de entrada');
       return;
     }
-
+    // Validaciones: si es compartida, requiere email y formato válido
     if (tipoEntrada === 'compartida' && !emailCompartido) {
       toast.error('Ingresa el email del usuario con quien compartirás la entrada');
       return;
@@ -68,6 +70,8 @@ const ComprarEntradas = () => {
     setProcesando(true);
     
     try {
+      // Construir payload para la API. La lógica de precio para entrada compartida
+      // aplica un factor (1.66) sobre el precio unitario y se redondea a 2 decimales.
       const datosCompra = {
         event_id: parseInt(id!),
         ticket_type: tipoEntrada,
@@ -77,11 +81,13 @@ const ComprarEntradas = () => {
           : evento?.precio || 0,
       };
 
+      // Llamada al endpoint de compra de tickets. `peticionApi` maneja headers.
       await peticionApi('/tickets/purchase', {
         method: 'POST',
         body: JSON.stringify(datosCompra),
       });
-      
+
+      // Notificar éxito y redirigir a la página del evento
       toast.success('¡Compra realizada exitosamente! Revisa tu correo.');
       navigate(`/event/${id}`);
     } catch (error: any) {

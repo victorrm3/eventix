@@ -5,11 +5,15 @@ import { useState, useEffect } from "react";
 import { peticionApi } from "@/lib/api";
 import logoEventix from "@/assets/logo-eventix.png";
 
-
+// Barra de navegación principal de la aplicación.
+// - Muestra el logo y enlaces públicos.
+// - Si hay `user`, muestra opciones adicionales (perfil, logros, crear evento, etc.).
+// - Hace una actualización de notificaciones de solicitudes de amistad cada 30s cuando el usuario está logueado.
 const Navegacion = () => {
   const { user, logout } = useAuth();
   const [notificacionesCount, setNotificacionesCount] = useState(0);
 
+  // Efecto que inicia la actualización de notificaciones cuando hay un usuario activo.
   useEffect(() => {
     if (user) {
       cargarNotificaciones();
@@ -19,6 +23,8 @@ const Navegacion = () => {
     }
   }, [user]);
 
+  // Petición al backend para obtener el número de solicitudes pendientes.
+  // `peticionApi` centraliza base URL y headers, por eso sólo pasamos la ruta.
   const cargarNotificaciones = async () => {
     try {
       const data = await peticionApi("/user/friend-requests/count");
@@ -32,7 +38,7 @@ const Navegacion = () => {
     <nav className="bg-white/95 backdrop-blur-md border-b sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+          {/* Logo: enlace a home */}
           <Link to="/" className="flex items-center">
             <img 
               src={logoEventix} 
@@ -49,6 +55,8 @@ const Navegacion = () => {
             <Link to="/saber-mas" className="text-gray-600 hover:text-gray-900 transition-colors">
               Sobre Nosotros
             </Link>
+
+            {/* Opciones visibles sólo si el usuario está autenticado */}
             {user && (
               <>
                 <Link to="/mi-perfil" className="text-gray-600 hover:text-gray-900 transition-colors relative inline-block">
@@ -69,6 +77,8 @@ const Navegacion = () => {
                 </Link>
               </>
             )}
+
+            {/* Enlaces condicionales según el rol del usuario */}
             {user?.role === "user" && (
               <Link to="/crear-evento" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Crear Evento
@@ -85,6 +95,7 @@ const Navegacion = () => {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
+                {/* Botón para crear evento accesible a admins */}
                 {user.role === "admin" && (
                   <Link to="/admin/crear-evento">
                     <button className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center space-x-1 transition-colors">
@@ -112,11 +123,14 @@ const Navegacion = () => {
                     <span className="text-sm font-medium text-gray-900">{user.name}</span>
                   </div>
                 </div>
+
+                {/* Logout */}
                 <button className="p-2 hover:bg-gray-100 rounded-md transition-colors" onClick={logout} title="Cerrar Sesión">
                   <LogOut className="w-4 h-4" />
                 </button>
               </>
             ) : (
+              // Si no hay usuario, mostrar botón de login
               <Link to="/login">
                 <button className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-1.5 rounded-md text-sm font-medium flex items-center space-x-2 transition-colors">
                   <User className="w-4 h-4" />

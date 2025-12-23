@@ -5,6 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+// Página de login / registro.
+// Comentarios hasta el `return`: estados, validaciones y handlers.
 const Login = () => {
   const [barraActiva, setBarraActiva] = useState("login");
   const [infoLogin, setInfoLogin] = useState({
@@ -12,6 +14,7 @@ const Login = () => {
     contraseña: ""
   });
 
+  // Estado del formulario de registro: nombre, correo, contraseña y confirmación
   const [infoRegistro, setInfoRegistro] = useState({
     name: "",
     correo: "",
@@ -19,12 +22,14 @@ const Login = () => {
     confirmContraseña: ""
   });
 
+  // Acciones del Auth context (login/register)
   const { login, register } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // `login` persistirá token/usuario según AuthContext
       await login(infoLogin.correo, infoLogin.contraseña);
       toast.success("Se ha iniciado sesión");
       navigate("/");
@@ -33,6 +38,7 @@ const Login = () => {
     }
   };
 
+  // Handler de registro: valida contraseñas y llama al contexto de registro
   const handleRegistro = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -42,6 +48,7 @@ const Login = () => {
     }
 
     try {
+      // `register` guardará token/usuario si la API devuelve datos de sesión
       await register(infoRegistro.name, infoRegistro.correo, infoRegistro.contraseña);
       toast.success("Registro exitoso");
       navigate("/");

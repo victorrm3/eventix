@@ -20,21 +20,24 @@ import { toast } from "sonner";
 
 interface EventosActivosProps {
   eventos: Evento[];
-  onEventoActualizado: () => void;
+  onEventoActualizado: () => void; // Callback para actualizar la lista tras cambios
 }
 
 const EventosActivos = ({ eventos, onEventoActualizado }: EventosActivosProps) => {
   const navigate = useNavigate();
+
+  // Estado para controlar qué evento se está intentando cancelar (id o null)
   const [eventoACancelar, setEventoACancelar] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
-  // Filtrar eventos futuros
-  const eventosFuturos = eventos.filter(evento => esEventoFuturo(evento.fecha));
+  // Filtramos sólo los eventos futuros para que el administrador vea sólo los activos
+  const eventosFuturos = eventos.filter((evento) => esEventoFuturo(evento.fecha));
 
   const handleEditarEvento = (eventoId: string) => {
     navigate(`/admin/editar-evento/${eventoId}`);
   };
 
+  // Realiza la petición de cancelación al backend. Maneja estados y notificaciones.
   const handleCancelarEvento = async (eventoId: string) => {
     setCargando(true);
     try {
@@ -61,12 +64,14 @@ const EventosActivos = ({ eventos, onEventoActualizado }: EventosActivosProps) =
         </p>
       </div>
 
+      {/* Mostrar mensaje si no hay eventos activos */}
       {eventosFuturos.length === 0 ? (
         <div className="text-center py-12 bg-card rounded-lg border border-border">
           <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">No hay eventos activos en este momento</p>
         </div>
       ) : (
+        // Lista de eventos: cada tarjeta contiene info y acciones (editar/cancelar)
         <div className="grid grid-cols-1 gap-4">
           {eventosFuturos.map((evento) => (
             <div
@@ -107,7 +112,7 @@ const EventosActivos = ({ eventos, onEventoActualizado }: EventosActivosProps) =
                       {evento.precio === 0 ? 'Gratis' : `€${evento.precio}`}
                     </span>
 
-                    {/* Botones de acción */}
+                    {/* Botones de acción: editar abre el formulario, cancelar abre el diálogo */}
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEditarEvento(evento.id)}
@@ -132,7 +137,9 @@ const EventosActivos = ({ eventos, onEventoActualizado }: EventosActivosProps) =
         </div>
       )}
 
-      {/* Diálogo de confirmación */}
+      {/* Diálogo de confirmación para cancelar evento.
+          Se abre cuando `eventoACancelar` tiene un id; cerrar resetea a null.
+          El botón de acción llama a `handleCancelarEvento` y muestra estado de carga. */}
       <AlertDialog open={eventoACancelar !== null} onOpenChange={() => setEventoACancelar(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

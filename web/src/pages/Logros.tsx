@@ -6,6 +6,9 @@ import Footer from "@/components/Footer";
 import { Trophy, Lock, Ticket, Star, Users, Heart, Check } from "lucide-react";
 import { peticionApi } from "@/lib/api";
 
+// Interfaz que representa un logro/achievement del usuario.
+// - `progreso` y `objetivo` permiten mostrar una barra de progreso cuando aplique.
+// - `unlocked_at` es opcional y se usa para mostrar fecha de desbloqueo.
 interface Logro {
   id: string;
   type: string;
@@ -23,6 +26,8 @@ const Logros = () => {
   const [logros, setLogros] = useState<Logro[]>([]);
   const [cargando, setCargando] = useState(true);
 
+  // Efecto: espera a que termine la carga de autenticación; si no hay usuario, redirige.
+  // Si hay usuario, inicia la carga de logros.
   useEffect(() => {
     if (!isLoading && !user) {
       navigate("/login");
@@ -45,6 +50,8 @@ const Logros = () => {
     }
   };
 
+  // Selector de icono basado en el `type` del logro. Facilita consistencia visual.
+  // Se usa `includes` para permitir variantes como `ticket_first` o `review_10`.
   const getIcono = (type: string) => {
     if (type.includes('ticket')) {
       return <Ticket className="w-8 h-8" />;

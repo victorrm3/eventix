@@ -5,22 +5,29 @@ import { Star } from "lucide-react";
 import { peticionApi } from "@/lib/api";
 import { toast } from "sonner";
 
+// Página para escribir una reseña de un evento.
+// Comentarios hasta el `return`: estados, validaciones y envío de la reseña.
 const EscribirResena = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
+
+  // `rating`: puntuación seleccionada (1-5). `hoverRating` al pasar el ratón.
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Maneja el envío del formulario: valida y llama al endpoint de reviews
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Comprobación básica: debe existir un `eventId` en la ruta
     if (!eventId) {
       toast.error("Evento no válido");
       return;
     }
 
+    // Validación: el usuario debe seleccionar al menos una estrella
     if (rating === 0) {
       toast.error("Por favor selecciona una puntuación");
       return;
@@ -29,6 +36,7 @@ const EscribirResena = () => {
     try {
       setLoading(true);
 
+      // Enviar la reseña al backend. `peticionApi` abstrae headers y baseURL.
       await peticionApi(`/events/${eventId}/reviews`, {
         method: "POST",
         body: JSON.stringify({

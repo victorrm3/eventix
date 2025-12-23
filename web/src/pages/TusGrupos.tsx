@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { peticionApi } from "@/lib/api";
 import { toast } from "sonner";
 
+// Representa un grupo al que el usuario está unido. `esOwner` indica si el usuario
+// es el creador/propietario del grupo.
 interface GrupoUnido {
   id: number;
   nombre: string;
@@ -20,16 +22,22 @@ interface GrupoUnido {
 const TusGrupos = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Estado local: lista de grupos, flag de carga y id del grupo que está saliendo
   const [gruposUnidos, setGruposUnidos] = useState<GrupoUnido[]>([]);
   const [cargando, setCargando] = useState(true);
   const [saliendoId, setSaliendoId] = useState<number | null>(null);
 
+  // Al montar el componente intentamos cargar los grupos del usuario.
+  // Si no hay usuario autenticado redirigimos a `/login`.
   useEffect(() => {
     if (!user) {
       navigate("/login");
       return;
     }
 
+    // Llamada al backend para obtener los grupos a los que el usuario se unió.
+    // `peticionApi` centraliza base URL/headers, por eso solo pasamos la ruta.
     const cargarGrupos = async () => {
       try {
         setCargando(true);
@@ -62,6 +70,8 @@ const TusGrupos = () => {
     }
   };
 
+  // Si por alguna razón no hay usuario (fallo de restauración), no renderizamos nada
+  // porque el efecto anterior ya redirigirá a `/login`.
   if (!user) return null;
 
   return (

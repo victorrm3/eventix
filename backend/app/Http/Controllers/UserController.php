@@ -252,7 +252,7 @@ class UserController extends Controller
         }
 
         // Verificar si ya existe una solicitud pendiente
-        $solicitudExistente = FriendRequest::where(function ($query) use ($user, $receiverId) {
+        $solicitudPendiente = FriendRequest::where(function ($query) use ($user, $receiverId) {
             $query->where('sender_id', $user->id)
                 ->where('receiver_id', $receiverId)
                 ->where('status', 'pending');
@@ -262,18 +262,47 @@ class UserController extends Controller
                 ->where('status', 'pending');
         })->first();
 
-        if ($solicitudExistente) {
+        if ($solicitudPendiente) {
             return response()->json([
                 'message' => 'Ya existe una solicitud pendiente con este usuario',
             ], 400);
         }
 
-        // Crear la solicitud
-        $friendRequest = FriendRequest::create([
-            'sender_id' => $user->id,
-            'receiver_id' => $receiverId,
-            'status' => 'pending',
-        ]);
+        // Usar transacción para asegurar atomicidad
+        try {
+            DB::beginTransaction();
+
+            // Eliminar cualquier solicitud existente que no sea pendiente (rechazada o aceptada)
+            // Esto evita conflictos con el constraint único
+            FriendRequest::where(function ($query) use ($user, $receiverId) {
+                $query->where('sender_id', $user->id)
+                    ->where('receiver_id', $receiverId)
+                    ->whereIn('status', ['rejected', 'accepted']);
+            })->orWhere(function ($query) use ($user, $receiverId) {
+                $query->where('sender_id', $receiverId)
+                    ->where('receiver_id', $user->id)
+                    ->whereIn('status', ['rejected', 'accepted']);
+            })->delete();
+
+            // Crear la nueva solicitud
+            $friendRequest = FriendRequest::create([
+                'sender_id' => $user->id,
+                'receiver_id' => $receiverId,
+                'status' => 'pending',
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error al crear solicitud de amistad: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'receiver_id' => $receiverId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => 'Error al crear la solicitud. Por favor, intenta de nuevo.',
+            ], 500);
+        }
 
         return response()->json([
             'message' => 'Solicitud de amistad enviada',
@@ -420,10 +449,14 @@ class UserController extends Controller
             ], 400);
         }
 
-        // Verificar si ya es amigo
-        $existingFriend = Friend::where('user_id', $user->id)
-            ->where('friend_id', $friendUser->id)
-            ->first();
+        // Verificar si ya es amigo (en cualquier dirección)
+        $existingFriend = Friend::where(function ($query) use ($user, $friendUser) {
+            $query->where('user_id', $user->id)
+                  ->where('friend_id', $friendUser->id);
+        })->orWhere(function ($query) use ($user, $friendUser) {
+            $query->where('user_id', $friendUser->id)
+                  ->where('friend_id', $user->id);
+        })->first();
 
         if ($existingFriend) {
             return response()->json([
@@ -431,10 +464,15 @@ class UserController extends Controller
             ], 400);
         }
 
-        // Crear la amistad (relación bidireccional)
+        // Crear la amistad bidireccional (ambas direcciones)
         Friend::create([
             'user_id' => $user->id,
             'friend_id' => $friendUser->id,
+        ]);
+
+        Friend::create([
+            'user_id' => $friendUser->id,
+            'friend_id' => $user->id,
         ]);
 
         return response()->json([
@@ -455,6 +493,7 @@ class UserController extends Controller
     {
         $user = Auth::user();
 
+        // Verificar que existe la amistad
         $friend = Friend::where('user_id', $user->id)
             ->where('friend_id', $id)
             ->first();
@@ -465,7 +504,24 @@ class UserController extends Controller
             ], 404);
         }
 
-        $friend->delete();
+        // Eliminar ambas direcciones de la amistad (bidireccional)
+        Friend::where(function ($query) use ($user, $id) {
+            $query->where('user_id', $user->id)
+                  ->where('friend_id', $id);
+        })->orWhere(function ($query) use ($user, $id) {
+            $query->where('user_id', $id)
+                  ->where('friend_id', $user->id);
+        })->delete();
+
+        // También eliminar las solicitudes de amistad relacionadas (accepted o rejected)
+        // para permitir que puedan volver a enviarse solicitudes en el futuro
+        FriendRequest::where(function ($query) use ($user, $id) {
+            $query->where('sender_id', $user->id)
+                  ->where('receiver_id', $id);
+        })->orWhere(function ($query) use ($user, $id) {
+            $query->where('sender_id', $id)
+                  ->where('receiver_id', $user->id);
+        })->delete();
 
         return response()->json([
             'message' => 'Amistad eliminada',
@@ -481,8 +537,8 @@ class UserController extends Controller
         $user = Auth::user();
 
         $tickets = Ticket::where('user_id', $user->id)
-            ->with('event:id,title,date,location')
-            ->select('id', 'event_id', 'price', 'status', 'qr_code')
+            ->with('event:id,title,date,location,price')
+            ->select('id', 'event_id', 'status', 'qr_code')
             ->get()
             ->map(function ($ticket) {
                 return [
@@ -491,7 +547,7 @@ class UserController extends Controller
                     'event_title' => $ticket->event->title ?? null,
                     'event_date' => $ticket->event->date ?? null,
                     'event_location' => $ticket->event->location ?? null,
-                    'price' => $ticket->price,
+                    'price' => $ticket->event->price ?? null,
                     'status' => $ticket->status,
                     'qr_code' => $ticket->qr_code,
                 ];

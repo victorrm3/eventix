@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Friend extends Model
-//No implementado aún
-{
+class Friend extends Model {
     use HasFactory;
 
     // Mantener created_at pero deshabilitar updated_at

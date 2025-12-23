@@ -5,6 +5,7 @@ import { Star } from "lucide-react";
 import { peticionApi } from "@/lib/api";
 import { toast } from "sonner";
 
+// Interfaz para una reseña
 interface Review {
   id: number;
   user: {
@@ -19,11 +20,15 @@ interface Review {
 
 const ResenasEvento = () => {
   const { eventId } = useParams();
+
+  // Estado local: lista de reseñas, rating promedio, total y flag de carga
   const [reviews, setReviews] = useState<Review[]>([]);
   const [averageRating, setAverageRating] = useState<number | null>(null);
   const [totalReviews, setTotalReviews] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch de reseñas desde el backend cuando cambia `eventId`.
+  // Se esperan campos `reviews`, `average_rating` y `total_reviews` en la respuesta.
   useEffect(() => {
     const fetchReviews = async () => {
       if (!eventId) return;
@@ -45,6 +50,7 @@ const ResenasEvento = () => {
     fetchReviews();
   }, [eventId]);
 
+  // Helper para renderizar estrellas según la puntuación (visual solamente)
   const renderStars = (rating: number) => {
     return (
       <div className="flex gap-1">

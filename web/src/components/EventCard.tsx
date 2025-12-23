@@ -2,6 +2,11 @@ import { Calendar, MapPin, Users, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatearFecha } from "@/lib/utils";
 
+// Componente de la carta del evento.
+// Muestra la imagen, título, breve descripción, detalles y un CTA para obtener entradas.
+
+// Tipos de datos del evento. Mantener simples: la fecha se recibe como string,
+// `hora` como texto representativo (ej. "20:00") y `imagen` como URL.
 interface Evento {
   id: string;
   titulo: string;
@@ -51,6 +56,7 @@ const EventCard = ({ evento }: EventCardProps) => {
         <div className="space-y-2 mb-4">
           <div className="flex items-center text-sm text-gray-500">
             <Calendar className="w-4 h-4 mr-2" />
+            {/* formatearFecha se encarga del formateo legible de la fecha */}
             {formatearFecha(evento.fecha)}
           </div>
           <div className="flex items-center text-sm text-gray-500">
@@ -63,6 +69,7 @@ const EventCard = ({ evento }: EventCardProps) => {
           </div>
           <div className="flex items-center text-sm text-gray-500">
             <Users className="w-4 h-4 mr-2" />
+            {/* Muestra asistentes actuales frente al máximo permitido */}
             {evento.personas} / {evento.maxPersonas} asistentes
           </div>
         </div>
