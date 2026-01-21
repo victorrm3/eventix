@@ -28,7 +28,7 @@ Este proyecto ha sido desarrollado como **Proyecto Final del ciclo DAW**, aplica
 
 ### Backend
 - Laravel 12
-- PHP 8.4
+- PHP 8.2
 - Laravel Sanctum (autenticación por token)
 
 ### Base de datos
